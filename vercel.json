@@ -5,19 +5,14 @@
       "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb",
-        "requirements.txt": "api/requirements.txt"
+        "maxLambdaSize": "50mb"
       }
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/backend/static/$1"
-    },
-    {
-      "src": "/templates/(.*)",
-      "dest": "/backend/templates/$1"
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
     },
     {
       "src": "/(.*)",
@@ -25,6 +20,16 @@
     }
   ],
   "env": {
-    "PYTHON_VERSION": "3.9"
+    "PYTHONPATH": "/var/task",
+    "DATABASE_URL": "@database_url",
+    "SECRET_KEY": "@secret_key",
+    "ENVIRONMENT": "production"
+  },
+  "functions": {
+    "api/index.py": {
+      "memory": 1024,
+      "maxDuration": 10,
+      "includeFiles": "backend/**"
+    }
   }
 }
