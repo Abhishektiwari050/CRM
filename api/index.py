@@ -8,7 +8,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import jwt
 import random
 from supabase import create_client, Client
@@ -20,6 +20,7 @@ from collections import deque, defaultdict
 from dotenv import load_dotenv
 import psycopg2
 import uuid
+ 
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format='{"ts":"%(asctime)s","level":"%(levelname)s","msg":"%(message)s"}')
