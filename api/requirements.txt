@@ -1,31 +1,10 @@
-# Vercel API requirements
-# This file is used by Vercel to install Python dependencies for the API
-
-# Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
-jinja2==3.1.2
-
-# Database
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-alembic==1.12.1
-
-# Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
-bcrypt==4.1.1
-
-# Scheduling
-apscheduler==3.10.4
-
-# Utilities
-python-dotenv==1.0.0
-email-validator==2.1.0
-
-# Notification Services (Email)
-sendgrid==6.11.0
-boto3==1.29.7
+fastapi
+uvicorn[standard]
+supabase
+pydantic
+PyJWT
+bcrypt
+python-multipart
+psycopg2-binary
+python-dotenv
+requests

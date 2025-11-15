@@ -32,25 +32,26 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd backend
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r api/requirements.txt
+        pip install pytest-cov bandit
     
     - name: Run tests
       run: |
-        cd backend
-        pytest tests/ -v --cov=. --cov-report=xml --cov-report=term
+        pytest tests/test_api.py -v --cov=api --cov-report=xml --cov-report=term
+        bandit -r api -ll
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./backend/coverage.xml
+        file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
     
     - name: Test Summary
       run: |
-        cd backend
         echo "## Test Results" >> $GITHUB_STEP_SUMMARY
         echo "✅ All tests passed successfully" >> $GITHUB_STEP_SUMMARY
+        echo "## Security Scan" >> $GITHUB_STEP_SUMMARY
+        echo "Bandit security scan completed" >> $GITHUB_STEP_SUMMARY

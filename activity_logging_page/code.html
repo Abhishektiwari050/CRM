@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log Activity - Competence Consulting</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#212529}.wrapper{display:flex;min-height:100vh}.sidebar{width:260px;background:linear-gradient(180deg,#6366f1 0%,#8b5cf6 100%);color:#fff;position:fixed;height:100vh;overflow-y:auto;z-index:1000;box-shadow:2px 0 10px rgba(0,0,0,.1);transition:transform .3s}.sidebar-header{padding:24px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.15)}.sidebar-header img{width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#fff;padding:8px}.sidebar-header h4{font-size:15px;font-weight:700;margin-bottom:4px}.sidebar-header .role{font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px}.sidebar-nav{padding:16px 0}.sidebar-nav a{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.85);text-decoration:none;transition:all .2s;position:relative;font-size:14px}.sidebar-nav a:hover{background:rgba(255,255,255,.1);color:#fff}.sidebar-nav a.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600}.sidebar-nav a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#a78bfa}.sidebar-nav a i{width:20px;margin-right:12px;font-size:16px}.nav-divider{height:1px;background:rgba(255,255,255,.1);margin:12px 20px}.content{margin-left:260px;flex:1;padding:24px;width:calc(100% - 260px)}.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px}.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0}.header p{color:#64748b;font-size:14px;margin-top:4px}.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:24px;margin-bottom:20px}.form-group{margin-bottom:20px}.form-group label{display:block;font-weight:600;color:#1e293b;margin-bottom:8px;font-size:14px}.form-group select,.form-group textarea,.form-group input{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;transition:all .2s;font-family:inherit}.form-group select:focus,.form-group textarea:focus,.form-group input:focus{outline:0;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}.form-group textarea{resize:vertical;min-height:120px}.btn{padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:8px}.btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.3)}.btn-secondary{background:#64748b;color:#fff}.btn-secondary:hover{background:#475569}.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.loading.show{display:flex}.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.alert{padding:14px 20px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:14px;animation:slideIn .3s}.alert-success{background:#d1fae5;color:#065f46;border-left:4px solid #10b981}.alert-danger{background:#fee2e2;color:#991b1b;border-left:4px solid #dc2626}@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}.mobile-toggle{display:none;position:fixed;top:16px;left:16px;z-index:1001;background:#3b82f6;color:#fff;border:none;padding:12px 16px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.content{margin-left:0;padding:16px;width:100%}.mobile-toggle{display:block}}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+
+<div class="wrapper">
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<img src="/static/images/logo.png" alt="Logo" class="brand-logo">
+<h4>Competence Consulting</h4>
+<div class="role">Employee Portal</div>
+</div>
+<nav class="sidebar-nav">
+<a href="/employee_dashboard_page/code.html"><i class="fas fa-home"></i>My Dashboard</a>
+<a href="/activity_logging_page/code.html" class="active"><i class="fas fa-clipboard-check"></i>Log Client Contact</a>
+<a href="/daily_work_report/code.html"><i class="fas fa-file-alt"></i>Submit Daily Report</a>
+<a href="/notifications_page/code.html"><i class="fas fa-bell"></i>Notifications</a>
+<div class="nav-divider"></div>
+<a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
+</aside>
+
+<main class="content">
+<div class="header">
+<h2>Log Service Connection</h2>
+<p>Record client service connections and follow-ups</p>
+</div>
+
+<div id="alertContainer"></div>
+
+<div class="card">
+<form id="activityForm">
+<div class="form-group">
+<label for="client">Select Client *</label>
+<select id="client" required>
+<option value="">-- Select Client --</option>
+</select>
+</div>
+
+<div class="form-group">
+<label for="category">Connection Type *</label>
+<select id="category" required>
+<option value="">-- Select Type --</option>
+<option value="service_call">Service Call</option>
+<option value="follow_up">Follow-up</option>
+<option value="meeting">Meeting</option>
+            <option value="email">Email</option>
+            <option value="phone">Phone</option>
+            <option value="whatsapp">WhatsApp</option>
+</select>
+</div>
+
+<div class="form-group">
+<label for="outcome">Outcome *</label>
+<select id="outcome" required>
+<option value="">-- Select Outcome --</option>
+<option value="connected">Connected Successfully</option>
+<option value="no_response">No Response</option>
+<option value="follow_up_needed">Follow-up Needed</option>
+<option value="issue_resolved">Issue Resolved</option>
+<option value="scheduled_callback">Scheduled Callback</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Follow-up</label>
+<div style="display:flex;gap:12px;align-items:center">
+    <label><input type="checkbox" id="follow_up_required"> Follow-up required</label>
+    <input type="datetime-local" id="follow_up_due_date" style="max-width:240px">
+  </div>
+  <small style="color:#64748b;font-size:12px">If follow-up is required, set a due date/time.</small>
+</div>
+
+
+
+<div class="form-group">
+<label for="notes">Notes</label>
+<textarea id="notes" placeholder="Add any additional notes about this interaction..." maxlength="500"></textarea>
+<small style="color:#64748b;font-size:12px">Maximum 500 characters</small>
+</div>
+
+
+
+<div style="display:flex;gap:12px">
+<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Log Connection</button>
+<button type="button" class="btn btn-secondary" onclick="location.href='/employee_dashboard_page/code.html'"><i class="fas fa-times"></i>Cancel</button>
+</div>
+</form>
+</div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <h3 style="color:#334155;font-size:16px">Activity History</h3>
+    <input type="search" id="search" placeholder="Search notes/outcome" style="max-width:240px" />
+  </div>
+  <div id="activityList" style="max-height:280px;overflow:auto;border:1px solid #e2e8f0;border-radius:8px"></div>
+</div>
+</main>
+</div>
+
+<script>
+const API=window.location.origin;
+const show=id=>document.getElementById(id)?.classList.add('show');
+const hide=id=>document.getElementById(id)?.classList.remove('show');
+const alert=(m,t='success')=>{const c=document.getElementById('alertContainer');if(!c){return}const a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class="fas fa-${t==='danger'?'times':t==='warning'?'exclamation-triangle':'check'}-circle"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)};
+function logout(){localStorage.clear();sessionStorage.clear();location.href='../login_page/code.html'}
+function getUser(){try{const u=sessionStorage.getItem('currentUser');return u?JSON.parse(u):null}catch{return null}}
+const parts=location.pathname.split('/').filter(Boolean);
+const targetEmp=(parts[0]==='employee'&&parts[2]==='log')?parts[1]:null;
+const user=getUser();
+const role=user?.role||'employee';
+const isManagerView=role!=='employee'&&!!targetEmp;
+async function loadClients(){
+  try{
+    show('loading');
+    const t=localStorage.getItem('token')||'';
+    const headers={'Accept':'application/json'};
+    if(t) headers.Authorization=`Bearer ${t}`;
+    const url=new URL(`${API}/api/clients`);
+    if(isManagerView) url.searchParams.set('employee_id', targetEmp);
+    const r=await fetch(url.toString(),{headers});
+    if(r.status===401){localStorage.removeItem('token');sessionStorage.removeItem('currentUser');location.href='../login_page/code.html';return}
+    if(!r.ok){let msg='Failed to load clients';try{const j=await r.json();msg=j.error?.message||j.detail||msg}catch{}throw new Error(`${msg} (status: ${r.status})`)}
+    const d=await r.json();
+    const s=document.getElementById('client');
+    const list=Array.isArray(d.data)?d.data:[];
+    const sorted=list.sort((a,b)=>{const da=a.last_contact_date?Math.ceil((Date.now()-Date.parse(a.last_contact_date))/864e5):999;const db=b.last_contact_date?Math.ceil((Date.now()-Date.parse(b.last_contact_date))/864e5):999;return db-da});
+    const options=sorted.length?sorted.map(c=>{const days=c.last_contact_date?Math.ceil((Date.now()-Date.parse(c.last_contact_date))/864e5):999;const priority=days>14?'🔴':'';const label=(c.name||c.company_name||'Unknown');return `<option value="${c.id}">${priority} ${label} ${days===999?'(Never contacted)':days>14?`(${days}d overdue)`:''}</option>`}).join(''):'<option value="">No assigned clients yet</option>';
+    s.innerHTML='<option value="">-- Select Client --</option>'+options;
+  }catch(e){console.error(e);alert(e.message||'Failed to load clients','danger')}
+  finally{hide('loading')}
+}
+async function refreshHistory(){
+  try{
+    const t=localStorage.getItem('token')||'';
+    const headers={'Accept':'application/json'};
+    if(t) headers.Authorization=`Bearer ${t}`;
+    const q=document.getElementById('search').value||'';
+    const url=new URL(`${API}/api/activity-feed`);
+    url.searchParams.set('limit','200');
+    if(q) url.searchParams.set('search', q);
+    if(isManagerView) url.searchParams.set('employee_id', targetEmp);
+    const r=await fetch(url.toString(),{headers});
+    if(r.status===401){localStorage.removeItem('token');sessionStorage.removeItem('currentUser');location.href='../login_page/code.html';return}
+    if(!r.ok){const err=await r.json().catch(()=>({}));const msg=err.error?.message||err.detail||'Failed to load activity history';throw new Error(`${msg} (status: ${r.status})`)}
+    const j=await r.json();
+    const l=document.getElementById('activityList');
+    l.innerHTML=(j.data||[]).map(a=>{let method='';let due='';try{const meta=(a.attachments||[]).find(x=>x.type==='contact_meta');if(meta){method=meta.method||'';due=meta.due_date||''}}catch{}return `<div style="padding:10px;border-bottom:1px solid #e2e8f0"><div style="font-size:12px;color:#0f172a">${(a.category||'service')} • ${(a.outcome||'')}${method?` • ${method}`:''}</div><div style="font-size:12px;color:#475569">${(a.notes||'')}</div><div style="font-size:11px;color:#64748b">${(a.created_at||'').replace('T',' ').slice(0,19)}${due?` • Follow-up: ${due.replace('T',' ').slice(0,16)}`:''}</div></div>`}).join('');
+  }catch(e){console.error(e);alert(e.message||'Failed to load activity history','danger')}
+}
+async function submitActivity(e){
+  e.preventDefault();
+  if(role!=='employee'){alert('Managers cannot log contacts here','warning');return}
+  const c=document.getElementById('client').value;
+  const cat=document.getElementById('category').value;
+  const o=document.getElementById('outcome').value;
+  const n=document.getElementById('notes').value;
+  const fu=document.getElementById('follow_up_required')?document.getElementById('follow_up_required').checked:false;
+  const due=document.getElementById('follow_up_due_date')?document.getElementById('follow_up_due_date').value:'';
+  if(!c||!cat||!o){return alert('Please fill required fields','danger')}
+  if(fu&&!due){return alert('Please set a follow-up due date','danger')}
+  try{
+    show('loading');
+    const t=localStorage.getItem('token');
+    const r=await fetch(`${API}/api/activity-log`,{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({client_id:c,outcome:o,notes:n,category:cat,quantity:1,contact_method:cat,follow_up_required:fu,follow_up_due_date:due||null})});
+    if(r.status===401){localStorage.removeItem('token');sessionStorage.removeItem('currentUser');location.href='../login_page/code.html';return}
+    if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.error?.message||'Failed to log connection')}
+    alert('Contact attempt logged');
+    document.getElementById('activityForm').reset();
+    try{localStorage.setItem('crm_last_contact_refresh', String(Date.now()))}catch{}
+    await refreshHistory();
+    await loadClients();
+  }catch(err){console.error(err);alert(err.message||'Failed to log connection','danger')}
+  finally{hide('loading')}
+}
+document.addEventListener('DOMContentLoaded',async()=>{
+  try{
+    const submitBtn=document.querySelector('button[type="submit"]');
+    if(role!=='employee'&&submitBtn){submitBtn.disabled=true}
+    if(role==='employee'){document.getElementById('activityForm').addEventListener('submit',submitActivity)}
+    await loadClients();
+    await refreshHistory();
+    const s=document.getElementById('search');
+    if(s){let timer; s.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(refreshHistory,300)})}
+  }catch(e){console.error(e)}
+});
+</script>
+<script>
+</script>
+</body>
+</html>

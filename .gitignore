@@ -1,0 +1,55 @@
+# Vercel
+.vercel
+
+# Environment
+.env
+.env.local
+.env.production
+.env.vercel
+*.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Node
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary
+temp/
+tmp/
+*.tmp
+*.bak
+*.zip
+*.tar.gz
+
+# Supabase
+supabase/.temp/
+supabase/.branches/

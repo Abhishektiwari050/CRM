@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Report - Competence CRM</title>
+<link rel="stylesheet" href="/assets/sidebar.css">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.content{margin-left:280px;padding:24px;width:calc(100% - 280px);min-height:100vh}
+.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px}
+.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0 0 4px}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:20px;padding:24px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-weight:600;color:#1e293b;margin-bottom:8px;font-size:14px}
+.form-group input,.form-group textarea{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;transition:all .2s}
+.form-group input:focus,.form-group textarea:focus{outline:0;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.form-group textarea{resize:vertical;min-height:100px}
+.btn{padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:#3b82f6;color:#fff}
+.btn-primary:hover{background:#2563eb}
+.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center}
+.loading.show{display:flex}
+.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){.content{margin-left:0;width:100%;padding:16px}}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+<div id="sidebarContainer"></div>
+
+<main class="content">
+<div class="header">
+<h2>Daily Work Report</h2>
+<p>Submit your daily work summary</p>
+</div>
+
+<div class="card">
+<form id="reportForm">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:12px">
+<div class="form-group">
+<label for="posts_completed">Posts Completed *</label>
+<input id="posts_completed" type="number" min="0" required>
+</div>
+<div class="form-group">
+<label for="engagements">Engagements</label>
+<input id="engagements" type="number" min="0">
+</div>
+<div class="form-group">
+<label for="observations">Observations</label>
+<input id="observations" type="text">
+</div>
+</div>
+
+<div class="form-group">
+<label for="tasks">Tasks Completed Today *</label>
+<textarea id="tasks" placeholder="List the tasks you completed today..." required></textarea>
+</div>
+
+<div class="form-group">
+<label for="achievements">Key Achievements</label>
+<textarea id="achievements" placeholder="Highlight your key achievements..."></textarea>
+</div>
+
+<div class="form-group">
+<label for="challenges">Challenges Faced</label>
+<textarea id="challenges" placeholder="Describe any challenges or blockers..."></textarea>
+</div>
+
+<button type="submit" class="btn btn-primary">Submit Report</button>
+</form>
+</div>
+</main>
+
+<script src="/assets/auth.js"></script>
+<script src="/assets/sidebar.js"></script>
+<script>
+const show=id=>document.getElementById(id)?.classList.add('show');
+const hide=id=>document.getElementById(id)?.classList.remove('show');
+
+const submit=async(e)=>{e.preventDefault();const pc=Number(document.getElementById('posts_completed').value||0),eng=Number(document.getElementById('engagements').value||0),obs=document.getElementById('observations').value||'',t=document.getElementById('tasks').value,a=document.getElementById('achievements').value,c=document.getElementById('challenges').value;if(!pc||!t)return alert('Please fill required fields');try{show('loading');await Auth.apiCall('/api/daily-report',{method:'POST',body:JSON.stringify({tasks:t,achievements:a,challenges:c,metrics:{posts_completed:pc,engagements:eng,observations:obs}})});alert('Report submitted successfully');document.getElementById('reportForm').reset()}catch(e){alert('Failed to submit report: '+e.message)}finally{hide('loading')}};
+
+document.getElementById('reportForm').addEventListener('submit',submit);(async()=>{const user=await Auth.checkAuth();if(!user)return;Sidebar.init(user.role||'employee','report')})();
+</script>
+</body>
+</html>

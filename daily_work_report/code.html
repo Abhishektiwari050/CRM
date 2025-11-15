@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Work Report - Competence CRM</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#212529}.wrapper{display:flex;min-height:100vh}.sidebar{width:260px;background:linear-gradient(180deg,#6366f1 0%,#8b5cf6 100%);color:#fff;position:fixed;height:100vh;overflow-y:auto;z-index:1000;box-shadow:2px 0 10px rgba(0,0,0,.1);transition:transform .3s}.sidebar-header{padding:24px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.15)}.sidebar-header img{width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#fff;padding:8px}.sidebar-header h4{font-size:15px;font-weight:700;margin-bottom:4px}.sidebar-header .role{font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px}.sidebar-nav{padding:16px 0}.sidebar-nav a{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.85);text-decoration:none;transition:all .2s;position:relative;font-size:14px}.sidebar-nav a:hover{background:rgba(255,255,255,.1);color:#fff}.sidebar-nav a.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600}.sidebar-nav a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#a78bfa}.sidebar-nav a i{width:20px;margin-right:12px;font-size:16px}.nav-divider{height:1px;background:rgba(255,255,255,.1);margin:12px 20px}.content{margin-left:260px;flex:1;padding:24px;width:calc(100% - 260px)}.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px}.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0}.header p{color:#64748b;font-size:14px;margin-top:4px}.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:24px;margin-bottom:20px}.form-group{margin-bottom:16px}.form-group label{display:block;font-weight:600;color:#1e293b;margin-bottom:6px;font-size:13px}.form-group input,.form-group textarea{width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;transition:all .2s;font-family:inherit}.form-group input:focus,.form-group textarea:focus{outline:0;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}.form-group textarea{resize:vertical;min-height:80px}.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.btn{padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:8px}.btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.3)}.btn-secondary{background:#64748b;color:#fff}.btn-secondary:hover{background:#475569}.btn-sm{padding:8px 16px;font-size:13px}.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.loading.show{display:flex}.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.alert{padding:14px 20px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:14px;animation:slideIn .3s}.alert-success{background:#d1fae5;color:#065f46;border-left:4px solid #10b981}.alert-danger{background:#fee2e2;color:#991b1b;border-left:4px solid #dc2626}.alert-warning{background:#fef3c7;color:#92400e;border-left:4px solid #f59e0b}@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}.report-item{padding:12px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;background:#fafbfc}.report-item .date{font-size:12px;font-weight:700;color:#3b82f6;margin-bottom:6px}.report-item .content{font-size:13px;color:#334155;line-height:1.6}.report-item .meta{font-size:11px;color:#64748b;margin-top:6px;display:flex;gap:12px}.mobile-toggle{display:none;position:fixed;top:16px;left:16px;z-index:1001;background:#3b82f6;color:#fff;border:none;padding:12px 16px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.content{margin-left:0;padding:16px;width:100%}.mobile-toggle{display:block}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+
+<div class="wrapper">
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<img src="/static/images/logo.png" alt="Logo" class="brand-logo">
+<h4>Competence CRM</h4>
+<div class="role">Employee Portal</div>
+</div>
+<nav class="sidebar-nav">
+<a href="/employee_dashboard_page/code.html"><i class="fas fa-home"></i>My Dashboard</a>
+<a href="/activity_logging_page/code.html"><i class="fas fa-clipboard-check"></i>Log Client Contact</a>
+<a href="/daily_work_report/code.html" class="active"><i class="fas fa-file-alt"></i>Submit Daily Report</a>
+<a href="/notifications_page/code.html"><i class="fas fa-bell"></i>Notifications</a>
+<div class="nav-divider"></div>
+<a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
+</aside>
+
+<main class="content">
+<div class="header">
+<h2>Daily Work Report</h2>
+<p>Log your daily activities - TA calls, renewals, service calls, and client interactions</p>
+</div>
+
+<div id="alertContainer"></div>
+
+<div class="card">
+<h3 style="font-size:18px;color:#1e293b;margin-bottom:16px">Today's Work Log</h3>
+<form id="reportForm">
+<div class="form-group">
+<label for="ta_calls">TA Calls - How Many?</label>
+<input id="ta_calls" type="number" min="0" placeholder="Number of TA calls">
+</div>
+<div class="form-group">
+<label for="ta_calls_to">TA Calls - To Whom?</label>
+<textarea id="ta_calls_to" placeholder="Enter names/companies (e.g., John Doe, ABC Corp, Jane Smith)"></textarea>
+</div>
+
+<div class="form-group">
+<label for="renewal_calls">Renewal Calls - How Many?</label>
+<input id="renewal_calls" type="number" min="0" placeholder="Number of renewal calls">
+</div>
+<div class="form-group">
+<label for="renewal_calls_to">Renewal Calls - To Whom?</label>
+<textarea id="renewal_calls_to" placeholder="Enter names/companies"></textarea>
+</div>
+
+<div class="form-group">
+<label for="service_calls">Service Calls - How Many?</label>
+<input id="service_calls" type="number" min="0" placeholder="Number of service calls">
+</div>
+<div class="form-group">
+<label for="service_calls_to">Service Calls - To Whom?</label>
+<textarea id="service_calls_to" placeholder="Enter names/companies"></textarea>
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label for="zero_star_calls">0 Star Calls</label>
+<input id="zero_star_calls" type="number" min="0" placeholder="Number of 0 star calls">
+</div>
+<div class="form-group">
+<label for="one_star_calls">1 Star Calls</label>
+<input id="one_star_calls" type="number" min="0" placeholder="Number of 1 star calls">
+</div>
+</div>
+
+<div class="form-group">
+<label for="additional_info">Additional Info</label>
+<textarea id="additional_info" placeholder="Any additional information, observations, or notes..."></textarea>
+</div>
+
+<button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i>Submit Report</button>
+</form>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h3 style="font-size:18px;color:#1e293b">My Reports Archive</h3>
+<button class="btn btn-sm btn-secondary" onclick="loadArchive()"><i class="fas fa-sync-alt"></i>Refresh</button>
+</div>
+<div id="archiveList"></div>
+</div>
+</main>
+</div>
+
+<script>
+const API=window.location.origin,show=id=>document.getElementById(id)?.classList.add('show'),hide=id=>document.getElementById(id)?.classList.remove('show'),alert=(m,t='success')=>{const c=document.getElementById('alertContainer');if(!c){return}const a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class=\"fas fa-${t==='danger'?'times':t==='warning'?'exclamation-triangle':'check'}-circle\"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)},logout=()=>{localStorage.clear();sessionStorage.clear();location.href='../login_page/code.html'},auth=async()=>{try{const u=sessionStorage.getItem('currentUser');if(!u)return location.href='../login_page/code.html',null;const d=JSON.parse(u);if(d.role!=='employee')return location.href='../manager_dashboard_page/code.html',null;return d}catch(e){return location.href='../login_page/code.html',null}},submitReport=async e=>{e.preventDefault();const ta=document.getElementById('ta_calls').value,ta_to=document.getElementById('ta_calls_to').value,renewal=document.getElementById('renewal_calls').value,renewal_to=document.getElementById('renewal_calls_to').value,service=document.getElementById('service_calls').value,service_to=document.getElementById('service_calls_to').value,zero=document.getElementById('zero_star_calls').value,one=document.getElementById('one_star_calls').value,info=document.getElementById('additional_info').value;const data={ta_calls:ta?Number(ta):null,ta_calls_to:ta_to||null,renewal_calls:renewal?Number(renewal):null,renewal_calls_to:renewal_to||null,service_calls:service?Number(service):null,service_calls_to:service_to||null,zero_star_calls:zero?Number(zero):null,one_star_calls:one?Number(one):null,additional_info:info||null};try{show('loading');const tk=localStorage.getItem('token'),r=await fetch(`${API}/api/daily-report`,{method:'POST',headers:{Authorization:`Bearer ${tk}`,'Content-Type':'application/json'},body:JSON.stringify(data)});if(r.status===401){localStorage.removeItem('token');sessionStorage.removeItem('currentUser');location.href='../login_page/code.html';return}if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.error?.message||err.detail||'Failed to submit report')}alert('Daily work report submitted successfully!');document.getElementById('reportForm').reset();try{localStorage.setItem('crm_last_contact_refresh', String(Date.now()))}catch{}await loadArchive()}catch(err){console.error(err);alert(err.message||'Failed to submit report','danger')}finally{hide('loading')}},loadArchive=async()=>{try{const tk=localStorage.getItem('token'),r=await fetch(`${API}/api/daily-reports`,{headers:{Authorization:`Bearer ${tk}`}});if(r.status===401){localStorage.removeItem('token');sessionStorage.removeItem('currentUser');location.href='../login_page/code.html';return}if(!r.ok){const err=await r.json().catch(()=>({}));const msg=err.error?.message||err.detail||'Failed to load reports';throw new Error(msg)}const j=await r.json(),l=document.getElementById('archiveList');if(!j.data||j.data.length===0){l.innerHTML='<div style=\"padding:20px;text-align:center;color:#64748b\">No reports submitted yet</div>';return}l.innerHTML=(j.data||[]).map(d=>{const m=d.metrics||{};let content='';if(m.ta_calls){content+=`<strong>TA Calls:</strong> ${m.ta_calls}`;if(m.ta_calls_to)content+=` → ${m.ta_calls_to}`;content+='<br>';}if(m.renewal_calls){content+=`<strong>Renewal:</strong> ${m.renewal_calls}`;if(m.renewal_calls_to)content+=` → ${m.renewal_calls_to}`;content+='<br>';}if(m.service_calls){content+=`<strong>Service:</strong> ${m.service_calls}`;if(m.service_calls_to)content+=` → ${m.service_calls_to}`;content+='<br>';}if(m.zero_star_calls)content+=`<strong>0★:</strong> ${m.zero_star_calls}<br>`;if(m.one_star_calls)content+=`<strong>1★:</strong> ${m.one_star_calls}<br>`;if(m.additional_info)content+=`<em>${m.additional_info}</em>`;return`<div class=\"report-item\"><div class=\"date\"><i class=\"fas fa-calendar\"></i> ${d.date||'N/A'}</div><div class=\"content\">${content||'No data'}</div><div class=\"meta\"><span><i class=\"fas fa-clock\"></i> ${(d.submitted_at||'').replace('T',' ').slice(0,19)}</span></div></div>`}).join('')}catch(e){console.error(e);document.getElementById('archiveList').innerHTML='<div style=\"padding:20px;text-align:center;color:#ef4444\">Failed to load reports</div>'}};document.getElementById('reportForm').addEventListener('submit',submitReport);document.addEventListener('DOMContentLoaded',async()=>{hide('loading');if(await auth())loadArchive()});
+</script>
+<script>
+(function(){
+  const form=document.getElementById('reportForm');
+  function collect(){
+    return {
+      ta_calls: document.getElementById('ta_calls').value?Number(document.getElementById('ta_calls').value):null,
+      ta_calls_to: document.getElementById('ta_calls_to').value||null,
+      renewal_calls: document.getElementById('renewal_calls').value?Number(document.getElementById('renewal_calls').value):null,
+      renewal_calls_to: document.getElementById('renewal_calls_to').value||null,
+      service_calls: document.getElementById('service_calls').value?Number(document.getElementById('service_calls').value):null,
+      service_calls_to: document.getElementById('service_calls_to').value||null,
+      zero_star_calls: document.getElementById('zero_star_calls').value?Number(document.getElementById('zero_star_calls').value):null,
+      one_star_calls: document.getElementById('one_star_calls').value?Number(document.getElementById('one_star_calls').value):null,
+      additional_info: document.getElementById('additional_info').value||null
+    }
+  }
+  async function loadDraft(){
+    try{
+      const tk=localStorage.getItem('token');
+      const r=await fetch(`${API}/api/daily-report/draft`,{headers:{Authorization:`Bearer ${tk}`}});
+      if(r.ok){
+        const j=await r.json();
+        const m=j.data&&j.data.metrics?j.data.metrics:{};
+        if(m.ta_calls!=null) document.getElementById('ta_calls').value=m.ta_calls;
+        if(m.ta_calls_to) document.getElementById('ta_calls_to').value=m.ta_calls_to;
+        if(m.renewal_calls!=null) document.getElementById('renewal_calls').value=m.renewal_calls;
+        if(m.renewal_calls_to) document.getElementById('renewal_calls_to').value=m.renewal_calls_to;
+        if(m.service_calls!=null) document.getElementById('service_calls').value=m.service_calls;
+        if(m.service_calls_to) document.getElementById('service_calls_to').value=m.service_calls_to;
+        if(m.zero_star_calls!=null) document.getElementById('zero_star_calls').value=m.zero_star_calls;
+        if(m.one_star_calls!=null) document.getElementById('one_star_calls').value=m.one_star_calls;
+        if(m.additional_info) document.getElementById('additional_info').value=m.additional_info;
+        return;
+      }
+    }catch{}
+    try{
+      const d=localStorage.getItem('dmr_draft');
+      if(d){
+        const m=JSON.parse(d);
+        if(m.ta_calls!=null) document.getElementById('ta_calls').value=m.ta_calls;
+        if(m.ta_calls_to) document.getElementById('ta_calls_to').value=m.ta_calls_to;
+        if(m.renewal_calls!=null) document.getElementById('renewal_calls').value=m.renewal_calls;
+        if(m.renewal_calls_to) document.getElementById('renewal_calls_to').value=m.renewal_calls_to;
+        if(m.service_calls!=null) document.getElementById('service_calls').value=m.service_calls;
+        if(m.service_calls_to) document.getElementById('service_calls_to').value=m.service_calls_to;
+        if(m.zero_star_calls!=null) document.getElementById('zero_star_calls').value=m.zero_star_calls;
+        if(m.one_star_calls!=null) document.getElementById('one_star_calls').value=m.one_star_calls;
+        if(m.additional_info) document.getElementById('additional_info').value=m.additional_info;
+      }
+    }catch{}
+  }
+  async function autoSave(){
+    try{
+      const data=collect();
+      localStorage.setItem('dmr_draft', JSON.stringify(data));
+      const tk=localStorage.getItem('token');
+      await fetch(`${API}/api/daily-report/draft`,{method:'POST',headers:{Authorization:`Bearer ${tk}`,'Content-Type':'application/json'},body:JSON.stringify(data)});
+    }catch{}
+  }
+  document.addEventListener('DOMContentLoaded',()=>{loadDraft();setInterval(autoSave,30000)});
+})();
+</script>
+</body>
+</html>

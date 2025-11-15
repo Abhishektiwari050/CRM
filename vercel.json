@@ -1,22 +1,33 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    }
+    {"src": "api/index.py", "use": "@vercel/python"}
   ],
-  "routes": [
+  "rewrites": [
+    {"source": "/api/(.*)", "destination": "/api/index.py"}
+  ],
+  "redirects": [
+    {"source": "/", "destination": "/login_page/code.html"}
+  ],
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "source": "/api/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, must-revalidate"},
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "X-Frame-Options", "value": "DENY"},
+        {"key": "X-XSS-Protection", "value": "1; mode=block"}
+      ]
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "headers": [
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "X-Frame-Options", "value": "SAMEORIGIN"}
+      ]
     }
-  ]
+  ],
+  "env": {
+    "APP_ENV": "production"
+  }
 }

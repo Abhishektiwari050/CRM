@@ -1,0 +1,80 @@
+/* CRM Color Scheme - WCAG 2.1 AA Compliant */
+:root {
+  /* Primary Colors */
+  --primary-50: #f8fafc;
+  --primary-100: #f1f5f9;
+  --primary-200: #e2e8f0;
+  --primary-300: #cbd5e1;
+  --primary-400: #94a3b8;
+  --primary-500: #64748b;
+  --primary-600: #475569;
+  --primary-700: #334155;
+  --primary-800: #1e293b;
+  --primary-900: #0f172a;
+
+  /* Accent Colors */
+  --accent-50: #eff6ff;
+  --accent-100: #dbeafe;
+  --accent-200: #bfdbfe;
+  --accent-300: #93c5fd;
+  --accent-400: #60a5fa;
+  --accent-500: #3b82f6;
+  --accent-600: #2563eb;
+  --accent-700: #1d4ed8;
+  --accent-800: #1e40af;
+  --accent-900: #1e3a8a;
+
+  /* Success Colors */
+  --success-50: #f0fdf4;
+  --success-100: #dcfce7;
+  --success-500: #22c55e;
+  --success-600: #16a34a;
+  --success-700: #15803d;
+
+  /* Warning Colors */
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+
+  /* Error Colors */
+  --error-50: #fef2f2;
+  --error-100: #fee2e2;
+  --error-500: #ef4444;
+  --error-600: #dc2626;
+
+  /* Semantic Colors */
+  --white: #ffffff;
+  --black: #000000;
+  --background: var(--primary-50);
+  --surface: var(--white);
+  --border: var(--primary-200);
+  --text-primary: var(--primary-900);
+  --text-secondary: var(--primary-600);
+  --text-muted: var(--primary-500);
+
+  /* Sidebar Colors */
+  --sidebar-bg: var(--primary-800);
+  --sidebar-text: var(--primary-100);
+  --sidebar-text-active: var(--white);
+  --sidebar-hover: var(--primary-700);
+  --sidebar-active: var(--accent-600);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--primary-900);
+    --surface: var(--primary-800);
+    --border: var(--primary-700);
+    --text-primary: var(--primary-100);
+    --text-secondary: var(--primary-300);
+    --text-muted: var(--primary-400);
+  }
+}

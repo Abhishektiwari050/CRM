@@ -1,122 +1,39 @@
 # Competence CRM
 
-A FastAPI-based CRM focused on activity logging, client management, reminders, and manager reporting. The project emphasizes reliability, simplicity, and strong testing coverage.
+System overview, key architectural decisions, implementation highlights, performance improvements, setup and deployment instructions, and known limitations.
 
-## Key Features (with implementation details)
+## System Overview
+Competence CRM supports three roles: `admin`, `manager`, `employee`. Managers create and assign clients to employees. Employees log client contacts and submit daily work reports. Dashboards show status groups: `overdue` (>14d), `due_soon` (8–14d), `good` (≤7d).
 
-- Authentication & RBAC
-  - JWT auth with role-based access (`employee`, `manager`, `admin`).
-  - Implementation: `backend/middleware/auth.py`, endpoints guarded in `backend/app.py`.
+## Key Architectural Decisions
+- Modular FastAPI application with standardized error handling and JWT auth.
+- In-memory demo mode when Supabase is not configured.
+- Performance middleware with request IDs and response time headers.
+- Backend-derived status classification and unified calculation rules.
+- Event-based UI refresh via `localStorage` for real-time sync.
 
-- Activity Logging
-  - Manual logs with duplicate prevention (same client, same day).
-  - Implementation: `backend/services/activity_service.py` and `backend/app.py` endpoints.
-  - DB constraints: unique index on `activity_logs(client_id, employee_id, DATE(created_at))` in `database/schema.sql`.
+## Implementation Highlights
+- `/api/clients` returns enriched fields: `days_since_last_contact`, `status`, `is_overdue`.
+- `/api/activity-log` updates client `last_contact_date`.
+- Manager analytics: stats, performance, alerts, workload distribution.
+- DWR autosave with server-side drafts and manager archive.
+- Round-robin auto-assignment endpoint for unassigned clients.
 
-- Client Management & Priority
-  - Assignment to employees; status tracking with overdue/due soon.
-  - Implementation: `backend/models/models.py` (`Client`), reporting in `backend/services/reporting_service.py`.
-  - Manager Clients UI: `backend/static/pages/manager-clients.html` implements:
-    - Overdue clients sorted by longest time since last contact.
-    - Due soon clients sorted by nearest `next_action_date` (tie-breaker: last contact gap).
-    - Good standing clients sorted by most recent contact.
-    - Auto-refresh every 60s to keep ordering dynamic.
+## Performance Improvements
+- Response-time instrumentation headers: `X-Request-ID`, `X-Response-Time-ms`.
+- Client list caching with short TTL.
+- Reduced blocking UI by rendering from cache and refreshing asynchronously.
 
-- Reminders & Escalations
-  - Overdue detection with automated reminders and escalation timing.
-  - Implementation: `backend/services/reminder_service.py` and scheduler hooks from `backend/enable_automations.py`.
+## Setup and Deployment
+1. `pip install -r api/requirements.txt`
+2. Start backend: `python -m uvicorn api.index:app --reload --host 0.0.0.0 --port 8001`
+3. Start UI proxy: `python server.py` (serves UI and proxies `/api/*`)
+4. Configure Supabase via environment variables to use production mode.
 
-- Reporting & Analytics
-  - Team coverage, overdue clients, performance summaries.
-  - Implementation: `backend/services/reporting_service.py`.
+## Known Limitations
+- Demo mode uses in-memory data; restart resets state.
+- Round-robin assignment is demo-only; production requires DB writes.
 
-- Security & Rate Limiting
-  - Configurable per-minute and per-hour limits.
-  - Implementation: `backend/middleware/rate_limiter.py`, applied in `backend/app.py`.
+## CI and Tests
+- GitHub Actions run unit tests, coverage, and Bandit security scan.
 
-- Auditing
-  - Comprehensive audit logs for create/update/delete/access actions.
-  - Implementation: `backend/middleware/audit.py` and database table `audit_logs`.
-
-- Email Connect (outbound reminders via email)
-  - Implementation: `backend/services/notification_service.py` and `backend/services/reminder_service.py`.
-
-## Architecture Overview
-
-- Backend: FastAPI (`backend/app.py`) serving HTML templates and JSON APIs.
-- Templates: Jinja2 pages in `backend/templates/` (e.g., `login.html`, `dashboard_router.html`).
-- Frontend assets: `backend/static/` contains pages, CSS, and JS.
-- Database: SQLAlchemy ORM (`backend/models/models.py`) with PostgreSQL schema in `backend/database/schema.sql`.
-- Services: Business logic in `backend/services/` (activity, reporting, notifications, etc.).
-- Middleware: Auth, audit, and rate limiting under `backend/middleware/`.
-- Jobs: Scheduled jobs in `backend/jobs/scheduled_jobs.py`.
-
-## Component Reference
-
-- `backend/app.py` — API routes, templates, and lifespan management (DB init, scheduler).
-- `backend/config.py` — Environment-driven settings validation and parsing.
-- `backend/database/connection.py` — SQLAlchemy engine/session and runtime schema checks.
-- `backend/models/models.py` — ORM models, including `ActivityLog`, `Client`, and `ActivityComment`.
-- `backend/services/*` — Modular services (activity, reporting, notifications, export/import).
-- `backend/middleware/*` — Auth service, audit trail, and rate limiter.
-- `backend/static/pages/*` — Role-based dashboards and manager tools.
-
-## Setup
-
-1. Navigate to backend: `cd backend`
-2. Install dependencies: `python -m pip install -r requirements.txt`
-3. Configure environment:
-   - Copy `.env.example` to `.env` and set values.
-   - Critical: `SECRET_KEY` must be 32+ chars; set `CORS_ORIGINS` to valid URLs.
-4. Initialize database:
-   - PostgreSQL: run `database/schema.sql` and `database/fixtures.sql` (optional sample data).
-   - Runtime migrations: application startup checks required columns/indexes.
-5. Start server: `python app.py` (default port via `PORT` env variable).
-
-## Configuration
-
-Configuration is managed via `backend/config.py` and `.env`:
-- `DATABASE_URL` — PostgreSQL (prod) or SQLite (tests/dev).
-- `RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_PER_HOUR` — global limits.
-- `OVERDUE_CONTACT_HOURS`, `ESCALATION_HOURS` — business logic thresholds.
-- `CORS_ORIGINS` — comma-separated list or JSON array.
-- `PORT` — server bind port used by `uvicorn`.
-
-## Deployment
-
-- Use production-grade PostgreSQL and set a strong `SECRET_KEY`.
-- Validate CORS origins (no wildcard in production).
-- Optional SSL/TLS: configure key/cert and reverse proxy (Nginx).
-- Set `ENABLE_SCHEDULER=True` if background jobs are required.
-
-## Testing
-
-- Run all tests: `python -m pytest tests/ -v`
-- Coverage: `pytest --cov=. --cov-report=html`
-- Test DB uses SQLite via fixtures (`backend/tests/conftest.py`).
-- Current status: 43 tests passing (unit, integration, E2E, CORS, rate limiter).
-
-## Maintenance & Best Practices
-
-- Keep documentation in `docs/` (centralized and versioned).
-- Avoid committing cache directories (`__pycache__`, `.pytest_cache`).
-- Validate settings in production (`backend/config.py` enforces secrets and CORS).
-- Use service layer patterns; avoid business logic in API handlers.
-- Add indexes for frequent queries (`backend/database/add_indexes.sql`).
-- Monitor connection pool health (`backend/database/connection.py`).
-
-## Development Timeline (Recent Changes)
-
-- Manager Clients UI refined with dynamic sorting and 60s auto-refresh.
-- Stable grouping implemented: overdue → due soon → good standing.
-- Dev server launched on alternative ports to avoid conflicts (e.g., `8016`).
-- Documentation consolidated under `docs/` and README rewritten.
-- Corrupted migration repaired: `database/migrations/add_activity_comments.sql`.
-- Full test suite executed with all tests passing.
-
-## Documentation Index
-
-- `docs/PROJECT_STRUCTURE.md` — Folder structure and pages overview.
-- `docs/START_HERE.md` — Quick start and troubleshooting.
-- `docs/SYSTEM_VERIFICATION.md` — Feature status and verification report.
-- `backend/tests/README.md` — Detailed test suite documentation.

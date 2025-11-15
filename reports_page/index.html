@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports - Competence CRM</title>
+<link rel="stylesheet" href="/assets/sidebar.css">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.content{margin-left:280px;padding:24px;width:calc(100% - 280px);min-height:100vh}
+.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px}
+.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:20px}
+.card-header{padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
+.card-header h5{font-size:18px;color:#1e293b;margin:0;font-weight:700}
+.card-body{padding:24px}
+.filter-group{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.filter-group input,.filter-group select{padding:10px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead{background:#f8fafc}
+th{padding:14px 16px;text-align:left;font-weight:700;color:#475569;font-size:12px;text-transform:uppercase}
+td{padding:14px 16px;border-bottom:1px solid #f1f5f9;color:#334155}
+tbody tr:hover{background:#f8fafc}
+.btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:#6366f1;color:#fff}
+.btn-sm{padding:7px 14px;font-size:13px}
+.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center}
+.loading.show{display:flex}
+.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){.content{margin-left:0;width:100%;padding:16px}}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+<div id="sidebarContainer"></div>
+
+<main class="content">
+<div class="header">
+<h2>Daily Work Reports</h2>
+</div>
+
+<div class="card">
+<div class="card-header">
+<h5>Team Reports</h5>
+<button class="btn btn-sm btn-primary" onclick="loadReports()">Refresh</button>
+</div>
+<div class="card-body">
+<div class="filter-group">
+<input type="date" id="fromDate" placeholder="From Date" max="9999-12-31">
+<input type="date" id="toDate" placeholder="To Date" max="9999-12-31">
+<select id="employeeFilter">
+<option value="">All Employees</option>
+</select>
+<button class="btn btn-sm btn-primary" onclick="loadReports()">Filter</button>
+</div>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Employee</th>
+<th>Tasks</th>
+<th>Achievements</th>
+</tr>
+</thead>
+<tbody id="reportsBody">
+<tr><td colspan="4" style="text-align:center;padding:40px">Loading...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+
+<script src="/assets/auth.js"></script>
+<script src="/assets/sidebar.js"></script>
+<script>
+const show=id=>document.getElementById(id)?.classList.add('show');
+const hide=id=>document.getElementById(id)?.classList.remove('show');
+const loadReports=async()=>{try{show('loading');const data=await Auth.apiCall('/api/daily-reports'),b=document.getElementById('reportsBody');if(!data.data?.length){b.innerHTML='<tr><td colspan="4" style="text-align:center;padding:40px">No reports</td></tr>';return}b.innerHTML=data.data.map(r=>`<tr><td>${r.date||new Date(r.submitted_at).toLocaleDateString()}</td><td><strong>${r.employee_name}</strong></td><td>${(r.tasks||'').substring(0,80)}...</td><td>${(r.achievements||'').substring(0,80)}...</td></tr>`).join('')}catch(e){console.error(e)}finally{hide('loading')}};
+window.loadReports=loadReports;(async()=>{const user=await Auth.checkAuth('manager');if(!user)return;Sidebar.init(user.role||'manager','reports');await loadReports()})();
+</script>
+</body>
+</html>
