@@ -14,7 +14,6 @@
 </head>
 <body>
 <div class="loading" id="loading"><div class="spinner"></div></div>
-<div id="debugPanel" style="position:fixed;top:10px;right:10px;width:400px;max-height:80vh;overflow:auto;background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:11px;z-index:10000;border:2px solid #0f0;display:block"></div>
 <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
 
 <div class="wrapper">
@@ -188,7 +187,7 @@
     document.title='Manager Dashboard - Competence CRM';
     const show = id => document.getElementById(id)?.classList.add('show');
     const hide = id => document.getElementById(id)?.classList.remove('show');
-    const dbg=(msg,data)=>{const p=document.getElementById('debugPanel');if(p){const t=new Date().toLocaleTimeString();p.innerHTML+=`<div>[${t}] ${msg}${data?' '+JSON.stringify(data):''}</div>`;p.scrollTop=p.scrollHeight}};
+    const dbg=(msg,data)=>{};
 
     const showAlert = (message, type = 'danger') => {
         const container = document.getElementById('alertContainer');
@@ -251,41 +250,41 @@
 
         async loadStats() {
             try {
-                dbg('=== STATS START ===');
+
                 console.log('=== MANAGER STATS START ===');
                 const token = localStorage.getItem('token');
-                dbg('Token:', token?'exists':'MISSING');
+
                 console.log('Token:', token ? token.substring(0,50)+'...' : 'MISSING');
                 console.log('Fetching from:', window.location.origin + '/api/manager/stats');
                 const res = await fetch('/api/manager/stats', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                dbg('Stats status:', res.status);
+
                 console.log('Stats response status:', res.status, res.statusText);
                 console.log('Stats response headers:', Object.fromEntries(res.headers.entries()));
                 if (res.ok) {
                     const data = await res.json();
-                    dbg('Stats data:', data);
+
                     console.log('Stats data received:', JSON.stringify(data));
                     this.renderStats(data);
-                    dbg('Stats rendered');
+
                     const domVals = {
                         employees: document.getElementById('totalEmployees').textContent,
                         clients: document.getElementById('totalClients').textContent,
                         overdue: document.getElementById('overdueClients').textContent,
                         efficiency: document.getElementById('efficiency').textContent
                     };
-                    dbg('DOM values:', domVals);
+
                     console.log('Stats rendered to DOM');
                     console.log('DOM values:', domVals);
                 } else {
                     const err = await res.text();
-                    dbg('Stats FAILED:', res.status);
+
                     console.error('Stats API FAILED:', res.status, err);
                     console.error('This means the backend returned an error');
                 }
             } catch (e) {
-                dbg('Stats ERROR:', e.message);
+
                 console.error('Stats EXCEPTION:', e.message, e.stack);
             }
         },
@@ -299,7 +298,7 @@
 
         async loadPerformance() {
             try {
-                dbg('=== PERF START ===');
+
                 console.log('=== MANAGER PERFORMANCE START ===');
                 const token = localStorage.getItem('token');
                 console.log('Token:', token ? token.substring(0,50)+'...' : 'MISSING');
@@ -307,25 +306,25 @@
                 const res = await fetch('/api/manager/employee-performance', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                dbg('Perf status:', res.status);
+
                 console.log('Performance response status:', res.status, res.statusText);
                 if (res.ok) {
                     const data = await res.json();
-                    dbg('Perf data:', {count:data.data?.length});
+
                     console.log('Performance data received:', JSON.stringify(data));
                     console.log('Employee count:', data.data ? data.data.length : 0);
                     this.renderPerformance(data.data || []);
-                    dbg('Perf rendered');
+
                     console.log('Performance rendered');
                 } else {
                     const err = await res.text();
-                    dbg('Perf FAILED:', res.status);
+
                     console.error('Performance API FAILED:', res.status, err);
                     console.error('This means the backend returned an error');
                     document.getElementById('performanceBody').innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading</p></td></tr>';
                 }
             } catch (e) {
-                dbg('Perf ERROR:', e.message);
+
                 console.error('Performance EXCEPTION:', e.message, e.stack);
                 document.getElementById('performanceBody').innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading</p></td></tr>';
             }

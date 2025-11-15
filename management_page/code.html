@@ -192,9 +192,13 @@ function showModal(t){
        <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
        <div class="form-group"><label>Password *</label><input type="password" name="password" required></div>`;
   }else if(t==='bulk'){
-    f.innerHTML=`<div class="form-group"><label>Number of Clients *</label><input type="number" name="count" min="1" max="500" value="140" required></div>
+    f.innerHTML=`<div class="form-group"><label>Upload CSV File</label><input type="file" name="csv" accept=".csv" id="csvFile"></div>
+       <p style="color:#64748b;font-size:12px;margin-bottom:16px"><i class="fas fa-info-circle"></i> CSV format: name,member_id,city,products_posted,expiry_date,email,phone</p>
+       <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px">
+       <p style="font-weight:600;margin-bottom:12px">OR Generate Random Clients:</p>
+       <div class="form-group"><label>Number of Clients</label><input type="number" name="count" min="1" max="500" value="140"></div>
        <div class="form-group"><label>Auto-assign to employees?</label><select name="auto_assign"><option value="yes">Yes - Equal distribution</option><option value="no">No - Manual later</option></select></div>
-       <p style="color:#64748b;font-size:13px;margin-top:8px"><i class="fas fa-info-circle"></i> Clients will be named Client 1, Client 2, etc. You can edit them later.</p>`;
+       <p style="color:#64748b;font-size:12px"><i class="fas fa-info-circle"></i> Clients will be named Client 1, Client 2, etc.</p></div>`;
   }else{
     f.innerHTML=`<div class="form-group"><label>Client Name *</label><input type="text" name="name" required></div>
        <div class="form-group"><label>Member ID</label><input type="text" name="member_id" placeholder="MEM001"></div>
@@ -482,10 +486,41 @@ async function loadWorkload(){
 }
 
 async function bulkAddClients(f){
+  const csvFile=f.get('csv');
   const count=parseInt(f.get('count'));
   const autoAssign=f.get('auto_assign')==='yes';
+  
+  // CSV upload
+  if(csvFile && csvFile.size > 0){
+    const btn=event.target.querySelector('button[type="submit"]');
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Uploading...'}
+    try{
+      show('loading');
+      const token=localStorage.getItem('token');
+      const formData=new FormData();
+      formData.append('file', csvFile);
+      console.log('Uploading CSV file...');
+      const res=await fetch('http://localhost:8000/api/clients/bulk-import-csv',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:formData});
+      if(!res.ok){
+        const err=await res.json().catch(()=>({}));
+        throw new Error(err.error?.message||err.detail||'Failed to import CSV');
+      }
+      const result=await res.json();
+      console.log('CSV import result:',result);
+      alert(`Successfully imported ${result.count} clients from CSV!`);
+      closeModal();
+      await loadClients();
+      await loadWorkload();
+    }catch(e){
+      console.error('CSV import error:',e);
+      alert(e.message||'Failed to import CSV','danger');
+    }finally{hide('loading');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save'}}
+    return;
+  }
+  
+  // Random generation
   if(!count||count<1||count>500){
-    alert('Please enter a valid number (1-500)','danger');
+    alert('Please enter a valid number (1-500) or upload a CSV file','danger');
     return;
   }
   const btn=event.target.querySelector('button[type="submit"]');

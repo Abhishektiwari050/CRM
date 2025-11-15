@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header, Query, Request
+from fastapi import FastAPI, HTTPException, Depends, Header, Query, Request, File, UploadFile
 from fastapi.responses import PlainTextResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -42,31 +42,11 @@ app.add_middleware(
 def health_check():
     return {"status": "healthy", "service": "Competence CRM API"}
 
-@app.get("/api/debug/mode")
-def debug_mode():
-    return {
-        "demo_mode": not supabase,
-        "use_demo_env": USE_DEMO,
-        "supabase_configured": bool(SUPABASE_URL and SUPABASE_KEY),
-        "demo_users_count": len(DEMO_USERS),
-        "demo_clients_count": len(DEMO_CLIENTS),
-        "demo_clients": [{"id": c["id"], "name": c["name"], "assigned_to": c.get("assigned_employee_id"), "last_contact": c.get("last_contact_date")} for c in DEMO_CLIENTS],
-        "backend_version": "v2_with_fixes"
-    }
-    if not supabase:
-        return {
-            "demo_mode": True,
-            "users": list(DEMO_USERS.keys()),
-            "user_details": {k: {"id": v["id"], "name": v["name"], "role": v["role"]} for k, v in DEMO_USERS.items()},
-            "clients": [{"id": c["id"], "name": c["name"], "assigned_employee_id": c.get("assigned_employee_id")} for c in DEMO_CLIENTS],
-            "current_user": payload["sub"],
-            "current_role": payload["role"]
-        }
-    return {"demo_mode": False, "message": "Production mode - no demo data"}
+
 
 # Simple in-memory cache
 CACHE = {"clients": {}}
-CACHE_TTL_SECONDS = 1  # Reduced for demo
+CACHE_TTL_SECONDS = 0  # Disabled for real-time sync
 
 @app.middleware("http")
 async def perf_middleware(request, call_next):
@@ -558,9 +538,17 @@ def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Q
             days = 999
             if lcd:
                 try:
-                    dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if isinstance(lcd, str) and "Z" in lcd else (datetime.fromisoformat(lcd) if isinstance(lcd, str) else lcd)
-                    days = math.ceil((datetime.utcnow() - dt).total_seconds() / 86400)
-                except Exception:
+                    if isinstance(lcd, str):
+                        dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "+" in lcd or "Z" in lcd else datetime.fromisoformat(lcd)
+                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
+                    else:
+                        dt = lcd
+                    now = datetime.utcnow()
+                    diff_seconds = (now - dt).total_seconds()
+                    days = max(0, int(diff_seconds / 86400))
+                    logger.info(f"Client {c.get('name')}: lcd={lcd}, dt={dt}, now={now}, diff_sec={diff_seconds}, days={days}")
+                except Exception as e:
+                    logger.warning(f"Date parse error for {c.get('name')}: {lcd} - {e}")
                     days = 999
             status = "good" if days <= 7 else ("due_soon" if days <= 14 else "overdue")
             c2 = dict(c)
@@ -585,12 +573,12 @@ def create_client(client: ClientCreate, payload = Depends(verify_token)):
     try:
         data = {
             "name": client.name,
-            "member_id": client.member_id,
-            "city": client.city,
+            "member_id": client.member_id or None,
+            "city": client.city or None,
             "products_posted": client.products_posted or 0,
-            "expiry_date": client.expiry_date,
-            "contact_email": client.email,
-            "contact_phone": client.phone,
+            "expiry_date": client.expiry_date if client.expiry_date else None,
+            "contact_email": client.email or None,
+            "contact_phone": client.phone or None,
             "status": "new",
             "last_contact_date": None,
             "created_at": datetime.utcnow().isoformat()
@@ -714,7 +702,7 @@ def activity_feed(
         items = items[offset:offset+limit]
         return {"data": items, "total": total, "limit": limit, "offset": offset}
 
-    q = supabase.table("activity_logs").select("*")
+    q = supabase.table("activity_logs").select("*", count="exact")
     if category: q = q.eq("category", category)
     if employee_id: q = q.eq("employee_id", employee_id)
     elif payload["role"] == "employee":
@@ -725,8 +713,8 @@ def activity_feed(
     if search:
         q = q.or_(f"notes.ilike.%{search}%,outcome.ilike.%{search}%")
     
-    total = q.execute(count="exact").count or 0
     res = q.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
+    total = res.count or 0
     
     return {"data": res.data or [], "total": total, "limit": limit, "offset": offset}
 
@@ -792,9 +780,10 @@ def submit_report(report: DailyReport, payload = Depends(verify_token)):
         "created_at": datetime.utcnow().isoformat()
     }
     
-    logger.info(f"Submitting daily report for {payload['sub']}")
+    logger.info(f"Submitting daily report for {payload['sub']}: {data}")
     try:
         result = supabase.table("daily_reports").insert(data).execute()
+        logger.info(f"Daily report inserted successfully: {result.data}")
     except Exception as e:
         logger.error(f"daily_reports insert failed: {e}")
         # Fallback: record as an activity log to ensure visibility on dashboard
@@ -871,25 +860,35 @@ def get_reports(payload = Depends(verify_token), employee_id: Optional[str] = Qu
     if not supabase:
         return demo_reports()
     try:
-        query = supabase.table("daily_reports").select("*, user:users!inner(name), metrics!inner(*)")
+        query = supabase.table("daily_reports").select("*")
         if payload["role"] == "employee":
             query = query.eq("employee_id", payload["sub"])    
         elif employee_id:
             query = query.eq("employee_id", employee_id)
-        result = query.order("created_at", desc=True).limit(100).execute(count='exact')
+        result = query.order("created_at", desc=True).limit(100).execute()
+        logger.info(f"Daily reports query returned {len(result.data or [])} records")
+        
+        # Get employee names
+        emp_ids = list(set([r["employee_id"] for r in result.data or []]))
+        emp_names = {}
+        if emp_ids:
+            users_res = supabase.table("users").select("id,name").in_("id", emp_ids).execute()
+            emp_names = {u["id"]: u["name"] for u in users_res.data or []}
+        
         data = []
-        for r in result.data:
-            metrics = r.get("metrics", {})
+        for r in result.data or []:
             data.append({
                 "id": r["id"],
                 "employee_id": r["employee_id"],
-                "employee_name": r["user"]["name"] if r.get("user") else "Unknown",
-                "metrics": r["metrics"] if r.get("metrics") else {},
+                "employee_name": emp_names.get(r["employee_id"], "Unknown"),
+                "metrics": r.get("metrics", {}),
                 "date": r["date"],
                 "submitted_at": r["created_at"]
             })
-        return {"data": data, "total": result.count}
-    except Exception:
+        logger.info(f"Returning {len(data)} daily reports")
+        return {"data": data, "total": len(data)}
+    except Exception as e:
+        logger.error(f"Error loading daily reports: {e}")
         return demo_reports()
 
 @app.post("/api/daily-report/draft")
@@ -989,7 +988,10 @@ def employee_stats(payload = Depends(verify_token)):
     
     def parse_dt(s):
         try:
-            return datetime.fromisoformat(s.replace("Z", "+00:00")) if isinstance(s, str) and "Z" in s else (datetime.fromisoformat(s) if isinstance(s, str) else s)
+            if isinstance(s, str):
+                dt = datetime.fromisoformat(s.replace("Z", "+00:00")) if "+" in s or "Z" in s else datetime.fromisoformat(s)
+                return dt.replace(tzinfo=None) if dt.tzinfo else dt
+            return s
         except Exception:
             return None
     
@@ -1003,7 +1005,7 @@ def employee_stats(payload = Depends(verify_token)):
         if lcd:
             dt = parse_dt(lcd)
             if dt:
-                days = math.ceil((datetime.utcnow() - dt).total_seconds() / 86400)
+                days = max(0, int((datetime.utcnow() - dt).total_seconds() / 86400))
         
         if days <= 7:
             good_count += 1
@@ -1064,27 +1066,32 @@ def manager_stats(payload = Depends(verify_token)):
             return {"employees": 0, "clients": 0, "overdue": 0, "efficiency": 0}
     
     # Production mode - use Supabase
-    employees = supabase.table("users").select("id", count="exact").eq("role", "employee").execute()
-    clients_res = supabase.table("clients").select("id,last_contact_date").execute()
-    data = clients_res.data or []
-    cutoff = datetime.utcnow() - timedelta(days=14)
-    def parse_dt(s):
-        try:
-            return datetime.fromisoformat(s.replace("Z", "+00:00")) if isinstance(s, str) and "Z" in s else (datetime.fromisoformat(s) if isinstance(s, str) else s)
-        except Exception:
-            return None
-    overdue_count = 0
-    for c in data:
-        lcd = c.get("last_contact_date")
-        if not lcd:
-            overdue_count += 1
-            continue
-        dt = parse_dt(lcd)
-        if not dt or dt < cutoff:
-            overdue_count += 1
-    total = len(data)
-    efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
-    return {"employees": employees.count or 0,"clients": total,"overdue": overdue_count,"efficiency": efficiency}
+    try:
+        employees = supabase.table("users").select("id", count="exact").eq("role", "employee").execute()
+        clients_res = supabase.table("clients").select("id,last_contact_date").execute()
+        data = clients_res.data or []
+        cutoff = datetime.utcnow() - timedelta(days=14)
+        def parse_dt(s):
+            try:
+                dt = datetime.fromisoformat(s.replace("Z", "+00:00")) if isinstance(s, str) and "Z" in s else (datetime.fromisoformat(s) if isinstance(s, str) else s)
+                return dt.replace(tzinfo=None) if dt.tzinfo else dt
+            except Exception:
+                return None
+        overdue_count = 0
+        for c in data:
+            lcd = c.get("last_contact_date")
+            if not lcd:
+                overdue_count += 1
+                continue
+            dt = parse_dt(lcd)
+            if not dt or dt < cutoff:
+                overdue_count += 1
+        total = len(data)
+        efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
+        return {"employees": employees.count or 0,"clients": total,"overdue": overdue_count,"efficiency": efficiency}
+    except Exception as e:
+        logger.error(f"Manager stats production error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -1190,10 +1197,16 @@ def employee_performance(payload = Depends(verify_token)):
             overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
             continue
         try:
-            lcd_dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if isinstance(lcd, str) and "Z" in lcd else (datetime.fromisoformat(lcd) if isinstance(lcd, str) else lcd)
-            if not lcd_dt or lcd_dt < overdue_date:
+            if isinstance(lcd, str):
+                lcd_dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "+" in lcd or "Z" in lcd else datetime.fromisoformat(lcd)
+                lcd_dt = lcd_dt.replace(tzinfo=None) if lcd_dt.tzinfo else lcd_dt
+            else:
+                lcd_dt = lcd
+            days_since = int((datetime.utcnow() - lcd_dt).total_seconds() / 86400)
+            if days_since > 14:
                 overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Date parse error in employee performance: {lcd} - {e}")
             overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
 
     activity_map = {}
@@ -1540,6 +1553,54 @@ def delete_user(user_id: str, payload = Depends(verify_token)):
         return {"message": "User deleted successfully"}
     except Exception as e:
         print(f"Error deleting user: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/clients/bulk-import-csv")
+async def bulk_import_csv(file: UploadFile = File(...), payload = Depends(verify_token)):
+    if payload["role"] not in ["manager", "admin"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    try:
+        import csv
+        import io
+        content = await file.read()
+        text = content.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(text))
+        
+        clients = []
+        for row in reader:
+            data = {
+                "name": row.get("name", "").strip(),
+                "member_id": row.get("member_id", "").strip() or None,
+                "city": row.get("city", "").strip() or None,
+                "products_posted": int(row.get("products_posted", 0) or 0),
+                "expiry_date": row.get("expiry_date", "").strip() or None,
+                "contact_email": row.get("email", "").strip() or None,
+                "contact_phone": row.get("phone", "").strip() or None,
+                "status": "new",
+                "last_contact_date": None,
+                "created_at": datetime.utcnow().isoformat()
+            }
+            if data["name"]:
+                clients.append(data)
+        
+        if not clients:
+            raise HTTPException(status_code=400, detail="No valid clients found in CSV")
+        
+        # Insert in batches
+        batch_size = 50
+        inserted = []
+        for i in range(0, len(clients), batch_size):
+            batch = clients[i:i+batch_size]
+            result = supabase.table("clients").insert(batch).execute()
+            if result.data:
+                inserted.extend(result.data)
+        
+        return {"message": f"Imported {len(inserted)} clients", "count": len(inserted)}
+    except Exception as e:
+        logger.error(f"CSV import error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/clients/bulk-create")

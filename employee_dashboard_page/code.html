@@ -11,7 +11,6 @@
 </head>
 <body>
 <div class="loading" id="loading"><div class="spinner"></div></div>
-<div id="debugPanel" style="position:fixed;top:10px;right:10px;width:350px;max-height:500px;overflow:auto;background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:10px;z-index:99999;border:2px solid #0f0"><strong style="color:#fff">DEBUG LOG:</strong><div id="debugContent"></div></div>
 <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
 
 <div class="wrapper">
@@ -62,7 +61,7 @@
 <script>
 const API=window.location.origin;
 document.title='Employee Dashboard - Competence CRM';
-const dbg=(msg,data)=>{const p=document.getElementById('debugContent');if(p){const t=new Date().toLocaleTimeString();p.innerHTML+=`<div style="border-top:1px solid #0f0;margin-top:3px;padding-top:3px">[${t}] ${msg}${data?' '+JSON.stringify(data):''}</div>`;p.parentElement.scrollTop=p.parentElement.scrollHeight}};
+const dbg=(msg,data)=>{};
 const show=id=>document.getElementById(id)?.classList.add('show'),hide=id=>document.getElementById(id)?.classList.remove('show'),alert=(m,t='danger')=>{const c=document.getElementById('alertContainer');if(!c){return}const a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class="fas fa-${t==='danger'?'times':'check'}-circle"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)};
 const logout=()=>{localStorage.clear();sessionStorage.clear();location.href='../login_page/code.html'};
 async function auth(){
@@ -81,9 +80,9 @@ const days=d=>{if(!d)return 999;const diff=Math.floor((new Date()-new Date(d))/8
 const getColorByStatus=s=>s==='good'?'#10b981':s==='due_soon'?'#f59e0b':'#ef4444';
 const getLabelByStatus=s=>s==='good'?'Good':s==='due_soon'?'Due Soon':'Overdue';
 const render=c=>{
-dbg('RENDER called',{count:c?.length});
+
 const b=document.getElementById('clientsBody');
-if(!c||!c.length){dbg('NO CLIENTS - setting 0');b.innerHTML='<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><p>No clients assigned</p></td></tr>';document.getElementById('totalClients').textContent='0';document.getElementById('goodClients').textContent='0';document.getElementById('dueSoonClients').textContent='0';document.getElementById('overdueClients').textContent='0';return}
+if(!c||!c.length){b.innerHTML='<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><p>No clients assigned</p></td></tr>';document.getElementById('totalClients').textContent='0';document.getElementById('goodClients').textContent='0';document.getElementById('dueSoonClients').textContent='0';document.getElementById('overdueClients').textContent='0';return}
 const orderMap={overdue:3,due_soon:2,good:1};
 const sorted=c.sort((a,b)=>{
   const dA=(typeof a.days_since_last_contact==='number')?a.days_since_last_contact:days(a.last_contact_date);
@@ -97,7 +96,7 @@ const sorted=c.sort((a,b)=>{
 let o=0,s=0,g=0;
 b.innerHTML=sorted.map(i=>{
 const d=i.days_since_last_contact!==undefined?i.days_since_last_contact:days(i.last_contact_date);
-dbg(i.name,{lcd:i.last_contact_date,api_days:i.days_since_last_contact,calc_days:d});
+
 const status=i.status||(d<7?'good':d<14?'due_soon':'overdue');
 const color=getColorByStatus(status);
 const label=getLabelByStatus(status);
@@ -108,45 +107,45 @@ document.getElementById('totalClients').textContent=c.length;
 document.getElementById('goodClients').textContent=g;
 document.getElementById('dueSoonClients').textContent=s;
 document.getElementById('overdueClients').textContent=o;
-dbg('Stats set',{total:c.length,good:g,dueSoon:s,overdue:o});
+
 };
 async function loadStats(){
 try{
-  dbg('loadStats START');
+
   const token=localStorage.getItem('token');
-  if(!token){dbg('NO TOKEN');return}
+  if(!token){return}
   
   console.log('Fetching employee stats...');
   const res=await fetch(`${API}/api/employee/stats`,{headers:{Authorization:`Bearer ${token}`}});
-  dbg('Stats API status',res.status);
+
   console.log('Stats response status:', res.status);
   
   if(res.ok){
     const stats=await res.json();
-    dbg('Stats data',stats);
+
     console.log('Stats data:', stats);
     document.getElementById('totalClients').textContent=stats.total_clients||0;
     document.getElementById('goodClients').textContent=stats.good_clients||0;
     document.getElementById('dueSoonClients').textContent=stats.due_soon_clients||0;
     document.getElementById('overdueClients').textContent=stats.overdue_clients||0;
-    dbg('Stats DOM updated');
+
   } else {
     const errorText = await res.text();
-    dbg('Stats FAILED',{status:res.status,error:errorText.substring(0,100)});
+
     console.error('Stats API error:', res.status, errorText);
   }
-}catch(e){dbg('Stats ERROR',e.message);console.error('Stats error:',e)}
+}catch(e){console.error('Stats error:',e)}
 }
 async function load(){
 try{
-  dbg('load() START');
+
   const token=localStorage.getItem('token');
   if(!token){location.href='../login_page/code.html';return}
   show('loading');
   
   console.log('Fetching clients from API...');
   const res=await fetch(`${API}/api/clients`,{headers:{Authorization:`Bearer ${token}`}});
-  dbg('Clients API status',res.status);
+
   console.log('API response status:', res.status);
   
   if(!res.ok){
@@ -164,13 +163,13 @@ try{
   const data=await res.json();
   console.log('API response data:', data);
   const list=(data.data||[]);
-  dbg('Clients received',{count:list.length});
+
   console.log('Client list:', list.length, 'clients');
   
   render(list);
-  dbg('load() COMPLETE - stats already set by render');
+
 }catch(e){
-  dbg('load() ERROR',e.message);
+
   console.error('Load error:', e);
   document.getElementById('clientsBody').innerHTML=`<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading: ${e.message}</p></td></tr>`;
 }finally{hide('loading')}
