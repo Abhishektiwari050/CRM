@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends, Header, Query, Request, File, UploadFile
-from fastapi.responses import PlainTextResponse, HTMLResponse
+from fastapi.responses import PlainTextResponse, HTMLResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 import os
@@ -37,10 +38,20 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+# Mount static files
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+except:
+    pass
+
 # Health endpoint inline
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "service": "Competence CRM API"}
+
+@app.get("/")
+def root():
+    return FileResponse("login_page/code.html")
 
 
 
@@ -1801,3 +1812,37 @@ def get_follow_ups(payload = Depends(verify_token)):
             "created_at": r.get("created_at")
         })
     return {"data": items, "total": len(items)}
+
+
+# HTML page routes
+@app.get("/login_page/code.html")
+def login_page():
+    return FileResponse("login_page/code.html")
+
+@app.get("/employee_dashboard_page/code.html")
+def employee_dashboard():
+    return FileResponse("employee_dashboard_page/code.html")
+
+@app.get("/manager_dashboard_page/code.html")
+def manager_dashboard():
+    return FileResponse("manager_dashboard_page/code.html")
+
+@app.get("/management_page/code.html")
+def management_page():
+    return FileResponse("management_page/code.html")
+
+@app.get("/activity_logging_page/code.html")
+def activity_logging():
+    return FileResponse("activity_logging_page/code.html")
+
+@app.get("/daily_work_report/code.html")
+def daily_work_report():
+    return FileResponse("daily_work_report/code.html")
+
+@app.get("/reports_page/code.html")
+def reports_page():
+    return FileResponse("reports_page/code.html")
+
+@app.get("/notifications_page/code.html")
+def notifications_page():
+    return FileResponse("notifications_page/code.html")
