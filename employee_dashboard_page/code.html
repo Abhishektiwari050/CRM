@@ -182,5 +182,6 @@ const debouncedFilter=()=>{clearTimeout(debounceTimer);debounceTimer=setTimeout(
 window.loadClients=load;window.filterClients=debouncedFilter;window.loadStats=loadStats;
 document.addEventListener('DOMContentLoaded',async()=>{hide('loading');const user=await auth();if(user){await load();setInterval(()=>{load()},3e5);window.addEventListener('storage',e=>{if(e.key==='crm_last_contact_refresh'){load()}})}});
 </script>
+<script src="/debug_panel/debug.js"></script>
 </body>
 </html>
