@@ -713,21 +713,26 @@ def activity_feed(
         items = items[offset:offset+limit]
         return {"data": items, "total": total, "limit": limit, "offset": offset}
 
-    q = supabase.table("activity_logs").select("*", count="exact")
-    if category: q = q.eq("category", category)
-    if employee_id: q = q.eq("employee_id", employee_id)
-    elif payload["role"] == "employee":
-        q = q.eq("employee_id", payload["sub"])
-    if client_id: q = q.eq("client_id", client_id)
-    if date_from: q = q.gte("created_at", date_from)
-    if date_to: q = q.lte("created_at", date_to)
-    if search:
-        q = q.or_(f"notes.ilike.%{search}%,outcome.ilike.%{search}%")
-    
-    res = q.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
-    total = res.count or 0
-    
-    return {"data": res.data or [], "total": total, "limit": limit, "offset": offset}
+    try:
+        logger.info(f"ACTIVITY_FEED: Fetching for {payload['sub']} role={payload['role']}")
+        q = supabase.table("activity_logs").select("*", count="exact")
+        if category: q = q.eq("category", category)
+        if employee_id: q = q.eq("employee_id", employee_id)
+        elif payload["role"] == "employee":
+            q = q.eq("employee_id", payload["sub"])
+        if client_id: q = q.eq("client_id", client_id)
+        if date_from: q = q.gte("created_at", date_from)
+        if date_to: q = q.lte("created_at", date_to)
+        if search:
+            q = q.or_(f"notes.ilike.%{search}%,outcome.ilike.%{search}%")
+        
+        res = q.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
+        total = res.count or 0
+        logger.info(f"ACTIVITY_FEED: Found {total} activities")
+        return {"data": res.data or [], "total": total, "limit": limit, "offset": offset}
+    except Exception as e:
+        logger.error(f"ACTIVITY_FEED: ERROR {type(e).__name__}: {e}")
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
 
 @app.post("/api/daily-report")
 def submit_report(report: DailyReport, payload = Depends(verify_token)):
@@ -1078,36 +1083,27 @@ def manager_stats(payload = Depends(verify_token)):
     
     # Production mode - use Supabase
     try:
-        logger.info(f"MANAGER STATS PROD: Fetching data for manager {payload['sub']}")
+        logger.info(f"MANAGER_STATS: Start for {payload['sub']}")
         employees = supabase.table("users").select("id", count="exact").eq("role", "employee").execute()
-        logger.info(f"MANAGER STATS: Found {employees.count or 0} employees")
+        emp_count = employees.count or 0
+        logger.info(f"MANAGER_STATS: employees={emp_count}")
+        
         clients_res = supabase.table("clients").select("id,last_contact_date").execute()
         data = clients_res.data or []
-        logger.info(f"MANAGER STATS: Found {len(data)} clients")
-        cutoff = datetime.utcnow() - timedelta(days=14)
-        def parse_dt(s):
-            try:
-                dt = datetime.fromisoformat(s.replace("Z", "+00:00")) if isinstance(s, str) and "Z" in s else (datetime.fromisoformat(s) if isinstance(s, str) else s)
-                return dt.replace(tzinfo=None) if dt.tzinfo else dt
-            except Exception:
-                return None
-        overdue_count = 0
-        for c in data:
-            lcd = c.get("last_contact_date")
-            if not lcd:
-                overdue_count += 1
-                continue
-            dt = parse_dt(lcd)
-            if not dt or dt < cutoff:
-                overdue_count += 1
         total = len(data)
+        logger.info(f"MANAGER_STATS: clients={total}")
+        
+        cutoff = datetime.utcnow() - timedelta(days=14)
+        overdue_count = sum(1 for c in data if not c.get("last_contact_date") or 
+                           (lambda dt: dt and dt < cutoff)(datetime.fromisoformat(c["last_contact_date"].replace("Z", "+00:00")).replace(tzinfo=None) if isinstance(c.get("last_contact_date"), str) else c.get("last_contact_date")))
+        
         efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
-        result = {"employees": employees.count or 0,"clients": total,"overdue": overdue_count,"efficiency": efficiency}
-        logger.info(f"MANAGER STATS RESULT: {result}")
+        result = {"employees": emp_count, "clients": total, "overdue": overdue_count, "efficiency": efficiency}
+        logger.info(f"MANAGER_STATS: SUCCESS {result}")
         return result
     except Exception as e:
-        logger.error(f"Manager stats production error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"MANAGER_STATS: ERROR {type(e).__name__}: {e}")
+        return {"employees": 0, "clients": 0, "overdue": 0, "efficiency": 0}
 
 
 
@@ -1256,7 +1252,6 @@ def list_users(payload = Depends(verify_token)):
         raise HTTPException(status_code=403, detail="Permission denied")
     
     if not supabase:
-        # Return demo users for manager dashboard
         demo_user_list = []
         for user in DEMO_USERS.values():
             demo_user_list.append({
@@ -1270,11 +1265,14 @@ def list_users(payload = Depends(verify_token)):
         return {"data": demo_user_list, "total": len(demo_user_list)}
     
     try:
+        logger.info(f"LIST_USERS: Fetching for {payload['sub']}")
         result = supabase.table("users").select("id,name,email,role,status,created_at").execute()
-        return {"data": result.data or [], "total": len(result.data or [])}
+        users = result.data or []
+        logger.info(f"LIST_USERS: Found {len(users)} users")
+        return {"data": users, "total": len(users)}
     except Exception as e:
-        print(f"Error loading users: {e}")
-        return {"data": [], "total": 0, "error": str(e)}
+        logger.error(f"LIST_USERS: ERROR {type(e).__name__}: {e}")
+        return {"data": [], "total": 0}
 
 @app.post("/api/employees")
 def create_employee(emp: EmployeeCreate, payload = Depends(verify_token)):
