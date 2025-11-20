@@ -272,7 +272,7 @@ function renderClients(c){
         show('loading');
         const token=localStorage.getItem('token');
         console.log('Assigning client',clientId,'to employee',employeeId);
-        const res=await fetch(`http://localhost:8000/api/clients/${clientId}/assign`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({employee_id:employeeId})});
+        const res=await fetch(`${API}/api/clients/${clientId}/assign`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({employee_id:employeeId})});
         if(!res.ok){
           const err=await res.json().catch(()=>({}));
           throw new Error(err.error?.message||'Failed to assign');
@@ -295,7 +295,7 @@ async function loadEmployees(){
     show('loading');
     const token=localStorage.getItem('token');
     if(!token) throw new Error('No auth token');
-    const res=await fetch('http://localhost:8000/api/users',{headers:{Authorization:`Bearer ${token}`}});
+    const res=await fetch(`${API}/api/users`,{headers:{Authorization:`Bearer ${token}`}});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to load employees');
@@ -315,7 +315,7 @@ async function loadClients(){
     show('loading');
     const token=localStorage.getItem('token');
     if(!token) throw new Error('No auth token');
-    const res=await fetch('http://localhost:8000/api/clients',{headers:{Authorization:`Bearer ${token}`}});
+    const res=await fetch(`${API}/api/clients`,{headers:{Authorization:`Bearer ${token}`}});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to load clients');
@@ -336,7 +336,7 @@ async function addEmployee(f){
     const token=localStorage.getItem('token');
     const payload={name:f.get('name'),email:f.get('email'),password:f.get('password')};
     console.log('Creating employee:',payload);
-    const res=await fetch('http://localhost:8000/api/employees',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const res=await fetch(`${API}/api/employees`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to add employee');
@@ -359,7 +359,7 @@ async function addClient(f){
     const token=localStorage.getItem('token');
     const payload={name:f.get('name'),member_id:f.get('member_id'),city:f.get('city'),products_posted:parseInt(f.get('products_posted'))||0,expiry_date:f.get('expiry_date'),email:f.get('email'),phone:f.get('phone')};
     console.log('Creating client:',payload);
-    const res=await fetch('http://localhost:8000/api/clients',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const res=await fetch(`${API}/api/clients`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to add client');
@@ -381,7 +381,7 @@ async function deleteUser(id){
     show('loading');
     const token=localStorage.getItem('token');
     console.log('Deleting user:',id);
-    const res=await fetch(`http://localhost:8000/api/admin/users/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+    const res=await fetch(`${API}/api/admin/users/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to delete user');
@@ -402,7 +402,7 @@ async function deleteClient(id){
     show('loading');
     const token=localStorage.getItem('token');
     console.log('Deleting client:',id);
-    const res=await fetch(`http://localhost:8000/api/clients/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+    const res=await fetch(`${API}/api/clients/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to delete client');
@@ -431,7 +431,7 @@ async function assignRoundRobin(){
     show('loading');
     const token=localStorage.getItem('token');
     console.log('Starting round-robin assignment');
-    const res=await fetch('http://localhost:8000/api/clients/assign-round-robin',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({reason:'round_robin'})});
+    const res=await fetch(`${API}/api/clients/assign-round-robin`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({reason:'round_robin'})});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to assign');
@@ -472,7 +472,7 @@ function renderWorkload(items){
 async function loadWorkload(){
   try{
     const token=localStorage.getItem('token');
-    const res=await fetch('http://localhost:8000/api/manager/workload-distribution',{headers:{Authorization:`Bearer ${token}`}});
+    const res=await fetch(`${API}/api/manager/workload-distribution`,{headers:{Authorization:`Bearer ${token}`}});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to load workload');
@@ -500,7 +500,7 @@ async function bulkAddClients(f){
       const formData=new FormData();
       formData.append('file', csvFile);
       console.log('Uploading CSV file...');
-      const res=await fetch('http://localhost:8000/api/clients/bulk-import-csv',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:formData});
+      const res=await fetch(`${API}/api/clients/bulk-import-csv`,{method:'POST',headers:{Authorization:`Bearer ${token}`},body:formData});
       if(!res.ok){
         const err=await res.json().catch(()=>({}));
         throw new Error(err.error?.message||err.detail||'Failed to import CSV');
@@ -530,7 +530,7 @@ async function bulkAddClients(f){
     const token=localStorage.getItem('token');
     console.log(`Creating ${count} clients...`);
     alert(`Creating ${count} clients...`,'success');
-    const res=await fetch('http://localhost:8000/api/clients/bulk-create',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({count:count})});
+    const res=await fetch(`${API}/api/clients/bulk-create`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({count:count})});
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
       throw new Error(err.error?.message||'Failed to create clients');
@@ -541,7 +541,7 @@ async function bulkAddClients(f){
     if(autoAssign){
       console.log('Auto-assigning clients...');
       alert('Auto-assigning clients to employees...','success');
-      const assignRes=await fetch('http://localhost:8000/api/clients/assign-round-robin',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({reason:'bulk_creation'})});
+      const assignRes=await fetch(`${API}/api/clients/assign-round-robin`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({reason:'bulk_creation'}});
       if(assignRes.ok){
         const assignResult=await assignRes.json();
         console.log('Assignment result:',assignResult);
