@@ -61,6 +61,7 @@
 <script>
 const API=window.location.origin;
 document.title='Employee Dashboard - Competence CRM';
+const formatTime=d=>{if(!d)return'Never';try{const dt=new Date(d);const now=new Date();const diff=Math.floor((now-dt)/1000);if(diff<60)return'Just now';if(diff<3600)return Math.floor(diff/60)+'m ago';if(diff<86400)return Math.floor(diff/3600)+'h ago';if(diff<604800)return Math.floor(diff/86400)+'d ago';const opts={month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'};return dt.toLocaleDateString('en-US',opts)}catch{return d}};
 const dbg=(msg,data)=>{};
 const show=id=>document.getElementById(id)?.classList.add('show'),hide=id=>document.getElementById(id)?.classList.remove('show'),alert=(m,t='danger')=>{const c=document.getElementById('alertContainer');if(!c){return}const a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class="fas fa-${t==='danger'?'times':'check'}-circle"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)};
 const logout=()=>{localStorage.clear();sessionStorage.clear();location.href='../login_page/code.html'};
@@ -101,7 +102,7 @@ const status=i.status||(d<7?'good':d<14?'due_soon':'overdue');
 const color=getColorByStatus(status);
 const label=getLabelByStatus(status);
 status==='overdue'?o++:status==='due_soon'?s++:g++;
-return`<tr><td><strong>${i.name||'Unknown'}</strong><br><small>${i.member_id||''} | ${i.city||''}</small></td><td>${i.contact_email||i.email||'N/A'}<br><small>Products: ${i.products_posted||0}</small></td><td><span class="status-indicator" style="background:${color}20;color:${color}"><i class="fas fa-circle"></i>${label}</span></td><td>${i.last_contact_date||'Never'}</td><td><span style="font-weight:600;color:${color}">${d===999?'∞':d===0?'Today':d}</span></td><td><a href="/activity_logging_page/code.html?client=${i.id}" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i>Log</a></td></tr>`
+return`<tr><td><strong>${i.name||'Unknown'}</strong><br><small>${i.member_id||''} | ${i.city||''}</small></td><td>${i.contact_email||i.email||'N/A'}<br><small>Products: ${i.products_posted||0}</small></td><td><span class="status-indicator" style="background:${color}20;color:${color}"><i class="fas fa-circle"></i>${label}</span></td><td><small>${formatTime(i.last_contact_date)}</small></td><td><span style="font-weight:600;color:${color}">${d===999?'∞':d===0?'Today':d}</span></td><td><a href="/activity_logging_page/code.html?client=${i.id}" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i>Log</a></td></tr>`
 }).join('');
 document.getElementById('totalClients').textContent=c.length;
 document.getElementById('goodClients').textContent=g;
@@ -138,7 +139,8 @@ try{
 }
 async function load(){
 try{
-
+  const btn=document.querySelector('button[onclick="loadClients()"]');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>Loading...'}
   const token=localStorage.getItem('token');
   if(!token){location.href='../login_page/code.html';return}
   show('loading');
@@ -171,8 +173,8 @@ try{
 }catch(e){
 
   console.error('Load error:', e);
-  document.getElementById('clientsBody').innerHTML=`<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading: ${e.message}</p></td></tr>`;
-}finally{hide('loading')}
+  document.getElementById('clientsBody').innerHTML=`<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load clients</p><button class="btn btn-sm btn-primary" onclick="load()" style="margin-top:10px"><i class="fas fa-redo"></i>Retry</button></td></tr>`;}
+}finally{hide('loading');const btn=document.querySelector('button[onclick="loadClients()"]');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-sync-alt"></i>Refresh'}}
 }
 let debounceTimer;
 const filter=()=>{const s=document.getElementById('searchInput').value.toLowerCase();document.querySelectorAll('#clientsBody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(s)?'':'none')};
