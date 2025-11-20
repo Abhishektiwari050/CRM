@@ -1194,7 +1194,7 @@ def employee_performance(payload = Depends(verify_token)):
         employees_res = supabase.table("users").select("id,name,email").eq("role", "employee").execute()
         employees = employees_res.data or []
         logger.info(f"EMPLOYEE_PERF: Found {len(employees)} employees")
-    emp_ids = [e["id"] for e in employees]
+        emp_ids = [e["id"] for e in employees]
 
         clients_res = supabase.table("clients").select("id,assigned_employee_id,last_contact_date").execute()
         clients = clients_res.data or []
@@ -1208,33 +1208,33 @@ def employee_performance(payload = Depends(verify_token)):
         assigned_map = {}
         overdue_map = {}
         for c in clients:
-        emp_id = c.get("assigned_employee_id")
-        if not emp_id:
-            continue
-        assigned_map[emp_id] = assigned_map.get(emp_id, 0) + 1
-        lcd = c.get("last_contact_date")
-        if not lcd:
-            overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-            continue
-        try:
-            if isinstance(lcd, str):
-                lcd_dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "+" in lcd or "Z" in lcd else datetime.fromisoformat(lcd)
-                lcd_dt = lcd_dt.replace(tzinfo=None) if lcd_dt.tzinfo else lcd_dt
-            else:
-                lcd_dt = lcd
-            days_since = int((datetime.utcnow() - lcd_dt).total_seconds() / 86400)
-            if days_since > 14:
+            emp_id = c.get("assigned_employee_id")
+            if not emp_id:
+                continue
+            assigned_map[emp_id] = assigned_map.get(emp_id, 0) + 1
+            lcd = c.get("last_contact_date")
+            if not lcd:
                 overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-        except Exception as e:
-            logger.warning(f"Date parse error in employee performance: {lcd} - {e}")
-            overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
+                continue
+            try:
+                if isinstance(lcd, str):
+                    lcd_dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "+" in lcd or "Z" in lcd else datetime.fromisoformat(lcd)
+                    lcd_dt = lcd_dt.replace(tzinfo=None) if lcd_dt.tzinfo else lcd_dt
+                else:
+                    lcd_dt = lcd
+                days_since = int((datetime.utcnow() - lcd_dt).total_seconds() / 86400)
+                if days_since > 14:
+                    overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
+            except Exception as e:
+                logger.warning(f"Date parse error in employee performance: {lcd} - {e}")
+                overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
 
         activity_map = {}
         for a in activities:
-        emp_id = a.get("employee_id")
-        if not emp_id:
-            continue
-        activity_map[emp_id] = activity_map.get(emp_id, 0) + 1
+            emp_id = a.get("employee_id")
+            if not emp_id:
+                continue
+            activity_map[emp_id] = activity_map.get(emp_id, 0) + 1
 
         data = []
         for e in employees:
