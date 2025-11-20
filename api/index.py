@@ -1041,7 +1041,7 @@ def manager_stats(payload = Depends(verify_token)):
         try:
             total = len(DEMO_CLIENTS)
             cutoff = datetime.utcnow() - timedelta(days=14)
-            logger.info(f"Manager stats: {total} total clients, cutoff date: {cutoff}")
+            logger.info(f"MANAGER STATS DEMO: {total} total clients, cutoff: {cutoff}")
             
             overdue_count = 0
             for c in DEMO_CLIENTS:
@@ -1078,9 +1078,12 @@ def manager_stats(payload = Depends(verify_token)):
     
     # Production mode - use Supabase
     try:
+        logger.info(f"MANAGER STATS PROD: Fetching data for manager {payload['sub']}")
         employees = supabase.table("users").select("id", count="exact").eq("role", "employee").execute()
+        logger.info(f"MANAGER STATS: Found {employees.count or 0} employees")
         clients_res = supabase.table("clients").select("id,last_contact_date").execute()
         data = clients_res.data or []
+        logger.info(f"MANAGER STATS: Found {len(data)} clients")
         cutoff = datetime.utcnow() - timedelta(days=14)
         def parse_dt(s):
             try:
@@ -1099,7 +1102,9 @@ def manager_stats(payload = Depends(verify_token)):
                 overdue_count += 1
         total = len(data)
         efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
-        return {"employees": employees.count or 0,"clients": total,"overdue": overdue_count,"efficiency": efficiency}
+        result = {"employees": employees.count or 0,"clients": total,"overdue": overdue_count,"efficiency": efficiency}
+        logger.info(f"MANAGER STATS RESULT: {result}")
+        return result
     except Exception as e:
         logger.error(f"Manager stats production error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1110,7 +1115,7 @@ def manager_stats(payload = Depends(verify_token)):
 def employee_performance(payload = Depends(verify_token)):
     if payload["role"] not in ["manager", "admin"]:
         raise HTTPException(status_code=403, detail="Permission denied")
-    
+    logger.info(f"EMPLOYEE_PERF: Manager {payload['sub']} requesting data")
     if not supabase:
         try:
             employees = [u for u in DEMO_USERS.values() if u.get("role") == "employee"]
@@ -1184,21 +1189,25 @@ def employee_performance(payload = Depends(verify_token)):
             logger.error(f"Employee performance error: {e}")
             return {"data": []}
     
-    # Production mode - use Supabase
-    employees_res = supabase.table("users").select("id,name,email").eq("role", "employee").execute()
-    employees = employees_res.data or []
+    try:
+        logger.info(f"EMPLOYEE_PERF: Fetching employees")
+        employees_res = supabase.table("users").select("id,name,email").eq("role", "employee").execute()
+        employees = employees_res.data or []
+        logger.info(f"EMPLOYEE_PERF: Found {len(employees)} employees")
     emp_ids = [e["id"] for e in employees]
 
-    clients_res = supabase.table("clients").select("id,assigned_employee_id,last_contact_date").execute()
-    clients = clients_res.data or []
-    week_ago = (datetime.utcnow() - timedelta(days=7))
-    overdue_date = (datetime.utcnow() - timedelta(days=14))
-    activities_res = supabase.table("activity_logs").select("id,employee_id,created_at").gte("created_at", week_ago.isoformat()).execute()
-    activities = activities_res.data or []
+        clients_res = supabase.table("clients").select("id,assigned_employee_id,last_contact_date").execute()
+        clients = clients_res.data or []
+        logger.info(f"EMPLOYEE_PERF: Found {len(clients)} clients")
+        week_ago = (datetime.utcnow() - timedelta(days=7))
+        overdue_date = (datetime.utcnow() - timedelta(days=14))
+        activities_res = supabase.table("activity_logs").select("id,employee_id,created_at").gte("created_at", week_ago.isoformat()).execute()
+        activities = activities_res.data or []
+        logger.info(f"EMPLOYEE_PERF: Found {len(activities)} activities")
 
-    assigned_map = {}
-    overdue_map = {}
-    for c in clients:
+        assigned_map = {}
+        overdue_map = {}
+        for c in clients:
         emp_id = c.get("assigned_employee_id")
         if not emp_id:
             continue
@@ -1220,28 +1229,24 @@ def employee_performance(payload = Depends(verify_token)):
             logger.warning(f"Date parse error in employee performance: {lcd} - {e}")
             overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
 
-    activity_map = {}
-    for a in activities:
+        activity_map = {}
+        for a in activities:
         emp_id = a.get("employee_id")
         if not emp_id:
             continue
         activity_map[emp_id] = activity_map.get(emp_id, 0) + 1
 
-    data = []
-    for e in employees:
-        assigned = assigned_map.get(e["id"], 0)
-        overdue_count = overdue_map.get(e["id"], 0)
-        efficiency = round((assigned - overdue_count) / assigned * 100) if assigned > 0 else 100
-        data.append({
-            "id": e["id"],
-            "name": e.get("name", "Unknown"),
-            "email": e.get("email", ""),
-            "assigned_clients": assigned,
-            "overdue_clients": overdue_count,
-            "activities_this_week": activity_map.get(e["id"], 0),
-            "efficiency": efficiency
-        })
-    return {"data": data}
+        data = []
+        for e in employees:
+            assigned = assigned_map.get(e["id"], 0)
+            overdue_count = overdue_map.get(e["id"], 0)
+            efficiency = round((assigned - overdue_count) / assigned * 100) if assigned > 0 else 100
+            data.append({"id": e["id"],"name": e.get("name", "Unknown"),"email": e.get("email", ""),"assigned_clients": assigned,"overdue_clients": overdue_count,"activities_this_week": activity_map.get(e["id"], 0),"efficiency": efficiency})
+        logger.info(f"EMPLOYEE_PERF: Returning {len(data)} employees")
+        return {"data": data}
+    except Exception as e:
+        logger.error(f"EMPLOYEE_PERF_ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
