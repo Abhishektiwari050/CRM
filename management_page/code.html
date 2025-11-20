@@ -296,17 +296,22 @@ async function loadEmployees(){
     show('loading');
     const token=localStorage.getItem('token');
     if(!token) throw new Error('No auth token');
+    console.log('Fetching employees from:',`${API}/api/users`);
     const res=await fetch(`${API}/api/users`,{headers:{Authorization:`Bearer ${token}`}});
+    console.log('Employees response:',res.status,res.statusText);
     if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to load employees');
+      const err=await res.text();
+      console.error('Employees API error:',err);
+      throw new Error(`API error ${res.status}: ${err}`);
     }
     const d=await res.json();
-    console.log('Employees loaded:',d);
+    console.log('Employees data:',d);
     allEmployees=(d.data||[]).filter(u=>u.role==='employee');
+    console.log('Filtered employees:',allEmployees.length);
     renderEmployees(d.data||[]);
   }catch(e){
     console.error('Load employees error:',e);
+    document.getElementById('employeesBody').innerHTML=`<tr><td colspan="5" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></td></tr>`;
     alert(e.message||'Failed to load employees','danger');
   }finally{ hide('loading') }
 }
@@ -316,16 +321,21 @@ async function loadClients(){
     show('loading');
     const token=localStorage.getItem('token');
     if(!token) throw new Error('No auth token');
+    console.log('Fetching clients from:',`${API}/api/clients`);
     const res=await fetch(`${API}/api/clients`,{headers:{Authorization:`Bearer ${token}`}});
+    console.log('Clients response:',res.status,res.statusText);
     if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to load clients');
+      const err=await res.text();
+      console.error('Clients API error:',err);
+      throw new Error(`API error ${res.status}: ${err}`);
     }
     const d=await res.json();
-    console.log('Clients loaded:',d);
+    console.log('Clients data:',d);
+    console.log('Client count:',d.data?.length||0);
     renderClients(d.data||[]);
   }catch(e){
     console.error('Load clients error:',e);
+    document.getElementById('clientsBody').innerHTML=`<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></td></tr>`;
     alert(e.message||'Failed to load clients','danger');
   }finally{ hide('loading') }
 }
@@ -473,16 +483,20 @@ function renderWorkload(items){
 async function loadWorkload(){
   try{
     const token=localStorage.getItem('token');
+    console.log('Fetching workload from:',`${API}/api/manager/workload-distribution`);
     const res=await fetch(`${API}/api/manager/workload-distribution`,{headers:{Authorization:`Bearer ${token}`}});
+    console.log('Workload response:',res.status,res.statusText);
     if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to load workload');
+      const err=await res.text();
+      console.error('Workload API error:',err);
+      throw new Error(`API error ${res.status}`);
     }
     const d=await res.json();
-    console.log('Workload loaded:',d);
+    console.log('Workload data:',d);
     renderWorkload(d.data||[]);
   }catch(e){
     console.error('Load workload error:',e);
+    document.getElementById('workloadBody').innerHTML=`<tr><td colspan="3" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading</p></td></tr>`;
   }
 }
 
