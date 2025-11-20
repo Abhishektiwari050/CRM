@@ -1366,6 +1366,48 @@ def workload_distribution(payload = Depends(verify_token)):
                 "postings_today": postings_map.get(e["id"], 0)
             })
         return {"data": data}
+    
+    try:
+        logger.info(f"WORKLOAD: Fetching for {payload['sub']}")
+        employees_res = supabase.table("users").select("id,name").eq("role", "employee").execute()
+        employees = employees_res.data or []
+        logger.info(f"WORKLOAD: Found {len(employees)} employees")
+        
+        clients_res = supabase.table("clients").select("id,assigned_employee_id").execute()
+        clients = clients_res.data or []
+        logger.info(f"WORKLOAD: Found {len(clients)} clients")
+        
+        assigned_map = {}
+        for c in clients:
+            emp_id = c.get("assigned_employee_id")
+            if emp_id:
+                assigned_map[emp_id] = assigned_map.get(emp_id, 0) + 1
+        
+        today = datetime.utcnow().date().isoformat()
+        activities_res = supabase.table("activity_logs").select("id,employee_id,created_at").gte("created_at", today).execute()
+        activities = activities_res.data or []
+        logger.info(f"WORKLOAD: Found {len(activities)} activities today")
+        
+        postings_map = {}
+        for a in activities:
+            emp_id = a.get("employee_id")
+            if emp_id:
+                postings_map[emp_id] = postings_map.get(emp_id, 0) + 1
+        
+        data = []
+        for e in employees:
+            data.append({
+                "employee_id": e["id"],
+                "name": e["name"],
+                "assigned_clients": assigned_map.get(e["id"], 0),
+                "postings_today": postings_map.get(e["id"], 0)
+            })
+        
+        logger.info(f"WORKLOAD: Returning {len(data)} employees")
+        return {"data": data}
+    except Exception as e:
+        logger.error(f"WORKLOAD: ERROR {type(e).__name__}: {e}")
+        return {"data": []}
 
 @app.post("/api/manager/assign-round-robin")
 def assign_round_robin(payload = Depends(verify_token)):
