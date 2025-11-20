@@ -136,7 +136,7 @@ async function loadClients(){
     const list=Array.isArray(d.data)?d.data:[];
     const sorted=list.sort((a,b)=>{const da=a.last_contact_date?Math.ceil((Date.now()-Date.parse(a.last_contact_date))/864e5):999;const db=b.last_contact_date?Math.ceil((Date.now()-Date.parse(b.last_contact_date))/864e5):999;return db-da});
     const options=sorted.length?sorted.map(c=>{const days=c.last_contact_date?Math.ceil((Date.now()-Date.parse(c.last_contact_date))/864e5):999;const priority=days>14?'🔴':'';const label=(c.name||c.company_name||'Unknown');return `<option value="${c.id}">${priority} ${label} ${days===999?'(Never contacted)':days>14?`(${days}d overdue)`:''}</option>`}).join(''):'<option value="">No assigned clients yet</option>';
-    s.innerHTML='<option value="">-- Select Client --</option>'+options;
+    s.innerHTML='<option value="">-- Select Client --</option>'+options;const urlParams=new URLSearchParams(window.location.search);const clientId=urlParams.get('client');if(clientId){s.value=clientId}
   }catch(e){console.error(e);alert(e.message||'Failed to load clients','danger')}
   finally{hide('loading')}
 }
@@ -167,7 +167,10 @@ async function submitActivity(e){
   const n=document.getElementById('notes').value;
   const fu=document.getElementById('follow_up_required')?document.getElementById('follow_up_required').checked:false;
   const due=document.getElementById('follow_up_due_date')?document.getElementById('follow_up_due_date').value:'';
-  if(!c||!cat||!o){return alert('Please fill required fields','danger')}
+  if(!c){document.getElementById('client').style.borderColor='#dc2626';return alert('Please select a client','danger')}
+  if(!cat){document.getElementById('category').style.borderColor='#dc2626';return alert('Please select connection type','danger')}
+  if(!o){document.getElementById('outcome').style.borderColor='#dc2626';return alert('Please select outcome','danger')}
+  document.getElementById('client').style.borderColor='#e2e8f0';document.getElementById('category').style.borderColor='#e2e8f0';document.getElementById('outcome').style.borderColor='#e2e8f0'
   if(fu&&!due){return alert('Please set a follow-up due date','danger')}
   try{
     show('loading');

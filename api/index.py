@@ -1846,3 +1846,38 @@ def reports_page():
 @app.get("/notifications_page/code.html")
 def notifications_page():
     return FileResponse("notifications_page/code.html")
+
+
+@app.get("/api/export/reports")
+def export_reports(payload = Depends(verify_token)):
+    if payload["role"] not in ["manager", "admin"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    try:
+        res = supabase.table("daily_reports").select("*").order("date", desc=True).limit(1000).execute()
+        rows = ["date,employee_id,ta_calls,ta_calls_to,renewal_calls,renewal_calls_to,service_calls,service_calls_to,zero_star_calls,one_star_calls,additional_info,submitted_at"]
+        
+        for r in res.data or []:
+            m = r.get("metrics") or {}
+            row = [
+                str(r.get('date', '')),
+                str(r.get('employee_id', '')),
+                str(m.get('ta_calls', '')),
+                str(m.get('ta_calls_to', '')).replace(',', ';'),
+                str(m.get('renewal_calls', '')),
+                str(m.get('renewal_calls_to', '')).replace(',', ';'),
+                str(m.get('service_calls', '')),
+                str(m.get('service_calls_to', '')).replace(',', ';'),
+                str(m.get('zero_star_calls', '')),
+                str(m.get('one_star_calls', '')),
+                str(m.get('additional_info', '')).replace(',', ';'),
+                str(r.get('created_at', ''))
+            ]
+            rows.append(','.join(row))
+        
+        return PlainTextResponse(content="\n".join(rows), media_type="text/csv")
+    except Exception as e:
+        logger.error(f"Error exporting reports: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
