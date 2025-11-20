@@ -148,6 +148,7 @@
 
 <script src="/static/js/branding.js"></script>
 <script>
+const API=window.location.origin;
 const show=id=>document.getElementById(id).classList.add('show'),hide=id=>document.getElementById(id).classList.remove('show'),alert=(m,t='success')=>{const c=document.getElementById('alertContainer'),a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class=\"fas fa-${t==='danger'?'times':'check'}-circle\"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)};
 
 function logout(){
@@ -567,5 +568,6 @@ window.assignRoundRobin=assignRoundRobin;
 window.loadWorkload=loadWorkload;
 document.addEventListener('DOMContentLoaded',async()=>{ if(await auth()){ await loadEmployees(); await loadClients(); await loadWorkload(); } });
 </script>
+<script src="/debug_panel/debug.js"></script>
 </body>
 </html>
