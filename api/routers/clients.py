@@ -33,8 +33,36 @@ def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Q
         items = result.data or []
         
         def classify(c: dict):
+            # Calculate days since last contact
+            last_contact = c.get("last_contact_date")
+            days_since = 9999
+            if last_contact:
+                try:
+                    # Parse last_contact_date
+                    lc_dt = datetime.fromisoformat(last_contact.replace("Z", "+00:00")) if "+" in last_contact or "Z" in last_contact else datetime.fromisoformat(last_contact)
+                    lc_dt = lc_dt.replace(tzinfo=None) if lc_dt.tzinfo else lc_dt
+                    now = datetime.utcnow()
+                    diff = (now - lc_dt).total_seconds()
+                    days_since = math.floor(diff / 86400)
+                except Exception:
+                    pass
+
+            # Recency Logic
+            # Good: <= 14 days
+            # Due Soon: 15-30 days
+            # Overdue: > 30 days or Never (9999)
+            
+            status = "overdue"
+            if days_since <= 14:
+                status = "good"
+            elif days_since <= 30:
+                status = "due_soon"
+            
+            # Additional check: If never contacted, it's overdue (handled by initial status="overdue")
+
+            # Still calculate expiry days for display/sorting if needed, but NOT for status
             expiry = c.get("expiry_date")
-            days = 9999
+            days_until_expiry = 9999
             if expiry:
                 try:
                     if isinstance(expiry, str):
@@ -43,21 +71,13 @@ def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Q
                     else:
                         dt = expiry
                     now = datetime.utcnow()
-                    # Calculate days until expiry
-                    diff_seconds = (dt - now).total_seconds()
-                    days = math.ceil(diff_seconds / 86400)
-                except Exception as e:
-                    logger.warning(f"Date parse error for {c.get('name')}: {expiry} - {e}")
-                    days = 9999
-            
-            status = "good"
-            if days < 0:
-                status = "overdue"
-            elif days <= 30:
-                status = "due_soon"
-            
+                    days_until_expiry = math.ceil((dt - now).total_seconds() / 86400)
+                except:
+                    pass
+
             c2 = dict(c)
-            c2["days_until_expiry"] = days
+            c2["days_since_contact"] = days_since
+            c2["days_until_expiry"] = days_until_expiry
             c2["status"] = status
             c2["is_overdue"] = (status == "overdue")
             return c2

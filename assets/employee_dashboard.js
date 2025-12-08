@@ -85,19 +85,16 @@ const Dashboard = (() => {
         animateValue(els.stats.overdue, overdue);
     };
 
-    // Helper: Calculate Status
+    // Helper: Calculate Status based on Recency only
     const calculateStatus = (expiryDate, lastContactDate) => {
-        if (!expiryDate) return 'Unknown';
-        const days = Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+        // Ignore expiryDate for status calculation as per new requirement
+        if (!lastContactDate) return 'Overdue'; // Never contacted
 
-        // Check 1: Expiry
-        if (days < 0) return 'Overdue';
+        const daysSince = Math.floor((new Date() - new Date(lastContactDate)) / (1000 * 60 * 60 * 24));
 
-        // Check 2: Never Contacted (treat as Overdue for stats/display)
-        if (!lastContactDate) return 'Overdue';
-
-        if (days <= 30) return 'Due Soon';
-        return 'Good';
+        if (daysSince <= 14) return 'Good';
+        if (daysSince <= 30) return 'Due Soon';
+        return 'Overdue';
     };
 
     // Helper: Animate Numbers

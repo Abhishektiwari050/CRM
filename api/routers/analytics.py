@@ -34,27 +34,23 @@ def manager_stats(payload = Depends(require_manager)):
         now = datetime.utcnow()
         overdue_count = 0
         for c in data:
-            is_overdue = False
-            # Check expiry
-            expiry = c.get("expiry_date")
-            if expiry:
-                try:
-                    if isinstance(expiry, str):
-                        dt = datetime.fromisoformat(expiry.replace("Z", "+00:00")) if "+" in expiry or "Z" in expiry else datetime.fromisoformat(expiry)
-                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
-                    else:
-                        dt = expiry
-                    if dt < now:
-                        is_overdue = True
-                except Exception:
-                    pass
+            # New Logic: Overdue if last_contact_date is > 30 days ago or None
+            last_contact = c.get("last_contact_date")
+            is_overdue = True # Default to overdue (Never contacted)
             
-            # Check participation (if not already overdue)
-            # User requirement: "none ... have been logged ever", so if never contacted, count as bad/overdue
-            if not is_overdue:
-                last_contact = c.get("last_contact_date")
-                if not last_contact:
-                    is_overdue = True
+            if last_contact:
+                try:
+                    dt = datetime.fromisoformat(last_contact.replace("Z", "+00:00")) if "+" in last_contact or "Z" in last_contact else datetime.fromisoformat(last_contact)
+                    dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
+                    diff_days = (now - dt).days
+                    if diff_days <= 30:
+                        is_overdue = False # Contacted recently (Good or Due Soon is considered "Not Overdue" for efficiency calc?)
+                        # Actually efficiency usually penalizes overdue. 
+                        # If status is "Due Soon" (15-30 days), is that "Overdue"?
+                        # Usually Overdue means > 30.
+                        # So if diff <= 30, it is NOT overdue.
+                except:
+                    pass
             
             if is_overdue:
                 overdue_count += 1
