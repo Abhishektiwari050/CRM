@@ -27,13 +27,15 @@ def manager_stats(payload = Depends(require_manager)):
         employees = supabase.table("users").select("id", count="exact").eq("role", "employee").execute()
         emp_count = employees.count or 0
         
-        clients_res = supabase.table("clients").select("id,expiry_date").execute()
+        clients_res = supabase.table("clients").select("id,expiry_date,last_contact_date").execute()
         data = clients_res.data or []
         total = len(data)
         
         now = datetime.utcnow()
         overdue_count = 0
         for c in data:
+            is_overdue = False
+            # Check expiry
             expiry = c.get("expiry_date")
             if expiry:
                 try:
@@ -43,9 +45,19 @@ def manager_stats(payload = Depends(require_manager)):
                     else:
                         dt = expiry
                     if dt < now:
-                        overdue_count += 1
+                        is_overdue = True
                 except Exception:
                     pass
+            
+            # Check participation (if not already overdue)
+            # User requirement: "none ... have been logged ever", so if never contacted, count as bad/overdue
+            if not is_overdue:
+                last_contact = c.get("last_contact_date")
+                if not last_contact:
+                    is_overdue = True
+            
+            if is_overdue:
+                overdue_count += 1
         
         efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
         return {"employees": emp_count, "clients": total, "overdue": overdue_count, "efficiency": efficiency}
