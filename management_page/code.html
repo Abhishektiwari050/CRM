@@ -746,21 +746,27 @@
                 b.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>No clients found. Click "Add Client" to create one.</p></td></tr>';
                 return;
             }
-            const sorted = c.sort((a, b) => days(b.last_contact_date) - days(a.last_contact_date));
+            // Sort by API enriched days_until_expiry or fallback
+            const sorted = c.sort((a, b) => (a.days_until_expiry || 9999) - (b.days_until_expiry || 9999));
+
             b.innerHTML = sorted.map(i => {
-                const d = days(i.last_contact_date);
-                const color = d <= 7 ? '#10b981' : d <= 14 ? '#f59e0b' : '#ef4444';
-                const label = d <= 7 ? 'Good' : d <= 14 ? 'Due Soon' : 'Overdue';
+                const daysSinceContact = days(i.last_contact_date);
+
+                // Use API status
+                let status = i.status || 'good'; // Default
+                let label = status === 'due_soon' ? 'Due Soon' : status.charAt(0).toUpperCase() + status.slice(1);
+                let badgeType = status === 'overdue' ? 'danger' : status === 'due_soon' ? 'warning' : 'success';
+
                 return `<tr>
           <td><strong>${i.name || 'Unknown'}</strong><br><small>${i.member_id || ''} | ${i.city || ''}</small></td>
           <td>${i.contact_email || 'N/A'}<br><small>Products: ${i.products_posted || 0} | Exp: ${i.expiry_date || 'N/A'}</small></td>
           <td>${i.last_contact_date || 'Never'}</td>
-          <td><span style="font-weight:600;color:${color}">${d === 999 ? '∞' : d}</span></td>
+          <td>${daysSinceContact === 999 ? '-' : daysSinceContact} days</td>
           <td><select class="assign-select" data-client-id="${i.id}" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px">
             <option value="">Unassigned</option>
             ${allEmployees.map(e => `<option value="${e.id}" ${i.assigned_employee_id === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
           </select></td>
-          <td><span class="badge badge-${d <= 7 ? 'success' : d <= 14 ? 'warning' : 'danger'}">${label}</span></td>
+          <td><span class="badge badge-${badgeType}">${label}</span></td>
           <td><button class="btn btn-sm btn-danger" onclick="deleteClient('${i.id}')"><i class="fas fa-trash"></i> Delete</button></td>
         </tr>`;
             }).join('');

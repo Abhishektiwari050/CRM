@@ -75,9 +75,9 @@ const Dashboard = (() => {
     // Render Stats
     const updateStats = () => {
         const total = state.clients.length;
-        const good = state.clients.filter(c => calculateStatus(c.expiry_date) === 'Good').length;
-        const due = state.clients.filter(c => calculateStatus(c.expiry_date) === 'Due Soon').length;
-        const overdue = state.clients.filter(c => calculateStatus(c.expiry_date) === 'Overdue').length;
+        const good = state.clients.filter(c => calculateStatus(c.expiry_date, c.last_contact_date) === 'Good').length;
+        const due = state.clients.filter(c => calculateStatus(c.expiry_date, c.last_contact_date) === 'Due Soon').length;
+        const overdue = state.clients.filter(c => calculateStatus(c.expiry_date, c.last_contact_date) === 'Overdue').length;
 
         animateValue(els.stats.total, total);
         animateValue(els.stats.good, good);
@@ -86,10 +86,16 @@ const Dashboard = (() => {
     };
 
     // Helper: Calculate Status
-    const calculateStatus = (expiryDate) => {
+    const calculateStatus = (expiryDate, lastContactDate) => {
         if (!expiryDate) return 'Unknown';
         const days = Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+
+        // Check 1: Expiry
         if (days < 0) return 'Overdue';
+
+        // Check 2: Never Contacted (treat as Overdue for stats/display)
+        if (!lastContactDate) return 'Overdue';
+
         if (days <= 30) return 'Due Soon';
         return 'Good';
     };
@@ -136,8 +142,8 @@ const Dashboard = (() => {
             // Handle status priority
             if (field === 'status') {
                 const priority = { 'Overdue': 1, 'Due Soon': 2, 'Good': 3, 'Unknown': 4 };
-                valA = priority[calculateStatus(a.expiry_date)] || 99;
-                valB = priority[calculateStatus(b.expiry_date)] || 99;
+                valA = priority[calculateStatus(a.expiry_date, a.last_contact_date)] || 99;
+                valB = priority[calculateStatus(b.expiry_date, b.last_contact_date)] || 99;
             }
 
             if (valA < valB) return direction === 'asc' ? -1 : 1;
@@ -166,7 +172,7 @@ const Dashboard = (() => {
         }
 
         els.tableBody.innerHTML = clients.map(client => {
-            const status = calculateStatus(client.expiry_date);
+            const status = calculateStatus(client.expiry_date, client.last_contact_date);
             const statusClass = status.toLowerCase().replace(' ', '-');
             const badgeClass = status === 'Good' ? 'active' : status === 'Overdue' ? 'red' : 'pending';
 
