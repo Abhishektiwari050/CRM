@@ -1,187 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Competence CRM</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#212529}.wrapper{display:flex;min-height:100vh}.sidebar{width:260px;background:linear-gradient(180deg,#6366f1 0%,#8b5cf6 100%);color:#fff;position:fixed;height:100vh;overflow-y:auto;z-index:1000;box-shadow:4px 0 20px rgba(0,0,0,.15);transition:transform .3s;border-right:1px solid #8b5cf6}.sidebar-header{padding:28px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.2);background:rgba(99,102,241,.9);backdrop-filter:blur(10px)}.sidebar-header .logo{width:64px;height:64px;margin:0 auto 16px;border-radius:16px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 16px rgba(0,0,0,.2);border:2px solid rgba(255,255,255,.2)}.sidebar-header .logo img{width:56px;height:56px;border-radius:12px;object-fit:cover}.sidebar-header h4{font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;color:#fff;letter-spacing:.5px}.sidebar-header .role{font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:1px;font-weight:600;background:rgba(255,255,255,.1);padding:4px 12px;border-radius:12px;display:inline-block}.sidebar-nav{padding:16px 0}.sidebar-nav a{display:flex;align-items:center;padding:12px 16px;color:rgba(255,255,255,.8);text-decoration:none;transition:all .3s ease;position:relative;font-size:14px;font-weight:500;margin:4px 12px;border-radius:10px}.sidebar-nav a:hover{background:rgba(255,255,255,.1);color:#fff;transform:translateX(4px);box-shadow:0 2px 8px rgba(255,255,255,.1)}.sidebar-nav a.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(255,255,255,.2)}.sidebar-nav a.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:4px;height:24px;background:#fff;border-radius:2px}.sidebar-nav a i{width:20px;margin-right:12px;font-size:16px}.nav-divider{height:1px;background:rgba(255,255,255,.2);margin:16px 20px}.content{margin-left:260px;flex:1;padding:24px;width:calc(100% - 260px)}.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0}.header .user-info{color:#64748b;font-size:14px;margin-top:4px}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}.stat-card{background:#fff;padding:24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12)}.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent)}.stat-card.primary{--accent:#3b82f6}.stat-card.success{--accent:#10b981}.stat-card.warning{--accent:#f59e0b}.stat-card.danger{--accent:#ef4444}.stat-card h3{font-size:36px;color:#1e293b;margin-bottom:8px;font-weight:700}.stat-card p{color:#64748b;font-size:13px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}.stat-card i{position:absolute;right:20px;top:20px;font-size:32px;color:var(--accent);opacity:.15}.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden}.card-header{padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;background:#fafbfc}.card-header h5{font-size:18px;color:#1e293b;margin:0;font-weight:700;display:flex;align-items:center;gap:10px}.card-body{padding:24px}.search-box{position:relative;margin-bottom:20px}.search-box input{width:100%;padding:12px 16px 12px 44px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;transition:all .2s}.search-box input:focus{outline:0;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}.search-box i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94a3b8}.table-responsive{overflow-x:auto;border-radius:8px;border:1px solid #f1f5f9}table{width:100%;border-collapse:collapse;font-size:14px}thead{background:#f8fafc}th{padding:14px 16px;text-align:left;font-weight:700;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}td{padding:14px 16px;border-bottom:1px solid #f1f5f9;color:#334155}tbody tr{transition:background .15s}tbody tr:hover{background:#f8fafc}tbody tr:last-child td{border-bottom:0}.status-indicator{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}.status-indicator i{font-size:8px}.btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}.btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.3)}.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}.btn-sm{padding:7px 14px;font-size:13px}.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.loading.show{display:flex}.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.empty-state{text-align:center;padding:60px 20px;color:#94a3b8}.empty-state i{font-size:56px;margin-bottom:16px;opacity:.4}.empty-state p{font-size:16px;margin-top:8px}.alert{padding:14px 20px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:14px;animation:slideIn .3s}.alert-danger{background:#fee2e2;color:#991b1b;border-left:4px solid #dc2626}.alert-success{background:#d1fae5;color:#065f46;border-left:4px solid #10b981}@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}.mobile-toggle{display:none;position:fixed;top:16px;left:16px;z-index:1001;background:#3b82f6;color:#fff;border:none;padding:12px 16px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.content{margin-left:0;padding:16px;width:100%}.mobile-toggle{display:block}.header{padding:16px}.header h2{font-size:22px}.stats-grid{grid-template-columns:1fr}.stat-card h3{font-size:28px}table{font-size:12px}th,td{padding:10px 8px}.btn{padding:8px 14px;font-size:13px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Competence CRM</title>
+    <link rel="stylesheet" href="/assets/sidebar.css">
+    <link rel="stylesheet" href="/assets/styles.css">
+    <style>
+        .content {
+            margin-left: 280px;
+            padding: 24px;
+            width: calc(100% - 280px);
+            min-height: 100vh
+        }
+
+        .header {
+            background: #fff;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+            margin-bottom: 24px
+        }
+
+        .header h2 {
+            font-size: 26px;
+            color: #1e293b;
+            font-weight: 700;
+            margin: 0 0 4px
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 14px
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+            position: relative
+        }
+
+        .stat-card h3 {
+            font-size: 36px;
+            color: #1e293b;
+            margin: 0 0 8px;
+            font-weight: 700
+        }
+
+        .stat-card p {
+            color: #64748b;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-weight: 600
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+            margin-bottom: 20px
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .card-header h5 {
+            font-size: 18px;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 700
+        }
+
+        .card-body {
+            padding: 24px
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        thead {
+            background: #f8fafc
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155
+        }
+
+        tbody tr:hover {
+            background: #f8fafc
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: #2563eb
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 13px
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center
+        }
+
+        .loading.show {
+            display: flex
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, .2);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin .8s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @media(max-width:768px) {
+            .content {
+                margin-left: 0;
+                width: 100%;
+                padding: 16px
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="loading" id="loading"><div class="spinner"></div></div>
-<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    <div id="sidebarContainer"></div>
+    <main class="content">
+        <div class="header">
+            <h2>Dashboard</h2>
+            <p>Welcome,
+                <strong id="userName">User</strong>
+            </p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="totalClients">0</h3>
+                <p>Total Clients</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="goodClients">0</h3>
+                <p>Good Standing</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="dueSoonClients">0</h3>
+                <p>Due Soon</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="overdueClients">0</h3>
+                <p>Overdue</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h5>My Clients</h5><button class="btn btn-sm btn-primary" onclick="loadClients()">Refresh</button>
+            </div>
+            <div class="card-body">
+                <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput"
+                        placeholder="Search clients..." onkeyup="filterClients()"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Last Contact</th>
+                            <th>Days</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:40px">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/assets/auth.js"></script>
+    <script src="/assets/sidebar.js"></script>
+    <script>const show = id => document.getElementById(id)?.classList.add('show');
+        const hide = id => document.getElementById(id)?.classList.remove('show');
 
-<div class="wrapper">
-<aside class="sidebar" id="sidebar">
-<div class="sidebar-header">
-<div class="logo"><img src="/static/images/logo.png" alt="CRM Logo"></div>
-<h4 class="brand-name">Competence CRM</h4>
-<div class="role" id="roleText">Employee Portal</div>
-</div>
-<nav class="sidebar-nav" id="sidebarNav"></nav>
-</aside>
+        const filter = () => {
+            clearTimeout(debounce);
 
-<main class="content">
-<div class="header">
-<div>
-<h2>My Dashboard</h2>
-<div class="user-info">Welcome, <strong id="userName">User</strong></div>
-</div>
-</div>
+            debounce = setTimeout(() => {
+                const s = document.getElementById('searchInput').value.toLowerCase(); document.querySelectorAll('#clientsBody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(s) ? '' : 'none')
+            }
 
-<div id="alertContainer"></div>
+                , 300)
+        }
 
-<div class="stats-grid">
-<div class="stat-card primary"><i class="fas fa-users"></i><h3 id="totalClients">0</h3><p>Total Clients</p></div>
-<div class="stat-card success"><i class="fas fa-check-circle"></i><h3 id="goodClients">0</h3><p>Good Standing</p></div>
-<div class="stat-card warning"><i class="fas fa-clock"></i><h3 id="dueSoonClients">0</h3><p>Due Soon</p></div>
-<div class="stat-card danger"><i class="fas fa-exclamation-triangle"></i><h3 id="overdueClients">0</h3><p>Overdue (>14d)</p></div>
-</div>
+            ;
+        let debounce;
 
-<div class="card">
-<div class="card-header">
-<h5><i class="fas fa-briefcase"></i>My Assigned Clients</h5>
-<button class="btn btn-sm btn-success" onclick="loadClients()"><i class="fas fa-sync-alt"></i>Refresh</button>
-</div>
-<div class="card-body">
-<div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search clients..." onkeyup="filterClients()"></div>
-<div class="table-responsive">
-<table>
-<thead><tr><th>Client</th><th>Contact</th><th>Status</th><th>Last Contact</th><th>Days</th><th>Action</th></tr></thead>
-<tbody id="clientsBody"><tr><td colspan="6" class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody>
-</table>
-</div>
-</div>
-</div>
-</main>
-</div>
+        // Chart instances
+        let clientChart = null;
+        let activityChart = null;
 
-<script>
-const API=window.location.origin;
-document.title='Employee Dashboard - Competence CRM';
-const formatTime=d=>{if(!d)return'Never';try{const dt=new Date(d);const now=new Date();const diff=Math.floor((now-dt)/1000);if(diff<60)return'Just now';if(diff<3600)return Math.floor(diff/60)+'m ago';if(diff<86400)return Math.floor(diff/3600)+'h ago';if(diff<604800)return Math.floor(diff/86400)+'d ago';const opts={month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'};return dt.toLocaleDateString('en-US',opts)}catch{return d}};
-const dbg=(msg,data)=>{};
-const show=id=>document.getElementById(id)?.classList.add('show'),hide=id=>document.getElementById(id)?.classList.remove('show'),alert=(m,t='danger')=>{const c=document.getElementById('alertContainer');if(!c){return}const a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class="fas fa-${t==='danger'?'times':'check'}-circle"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)};
-const logout=()=>{localStorage.clear();sessionStorage.clear();location.href='../login_page/code.html'};
-async function auth(){
-try{
-const u=sessionStorage.getItem('currentUser'),token=localStorage.getItem('token');
-if(!u||!token){location.href='../login_page/code.html';return null}
-const d=JSON.parse(u);
-document.getElementById('userName').textContent=d.name||'User';
-if(d.role==='manager'||d.role==='admin'){location.href='/manager_dashboard_page/code.html';return null}
-const nav=`<a href="/employee_dashboard_page/code.html" class="active"><i class="fas fa-home"></i>My Dashboard</a><a href="/activity_logging_page/code.html"><i class="fas fa-clipboard-check"></i>Log Client Contact</a><a href="/daily_work_report/code.html"><i class="fas fa-file-alt"></i>Submit Daily Report</a><a href="/notifications_page/code.html"><i class="fas fa-bell"></i>Notifications</a>`;
-document.getElementById('sidebarNav').innerHTML=nav+`<div class="nav-divider"></div><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>`;
-return d;
-}catch(e){location.href='../login_page/code.html';return null}
-}
-const days=d=>{if(!d)return 999;const diff=Math.floor((new Date()-new Date(d))/864e5);return diff<0?0:diff};
-const getColorByStatus=s=>s==='good'?'#10b981':s==='due_soon'?'#f59e0b':'#ef4444';
-const getLabelByStatus=s=>s==='good'?'Good':s==='due_soon'?'Due Soon':'Overdue';
-const render=c=>{
+        async function load() {
+            show('loading');
 
-const b=document.getElementById('clientsBody');
-if(!c||!c.length){b.innerHTML='<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><p>No clients assigned</p></td></tr>';document.getElementById('totalClients').textContent='0';document.getElementById('goodClients').textContent='0';document.getElementById('dueSoonClients').textContent='0';document.getElementById('overdueClients').textContent='0';return}
-const orderMap={overdue:3,due_soon:2,good:1};
-const sorted=c.sort((a,b)=>{
-  const dA=(typeof a.days_since_last_contact==='number')?a.days_since_last_contact:days(a.last_contact_date);
-  const dB=(typeof b.days_since_last_contact==='number')?b.days_since_last_contact:days(b.last_contact_date);
-  const sA=(a.status)||((dA<7)?'good':(dA<14)?'due_soon':'overdue');
-  const sB=(b.status)||((dB<7)?'good':(dB<14)?'due_soon':'overdue');
-  const oA=orderMap[sA]||0; const oB=orderMap[sB]||0;
-  if(oA!==oB) return oB-oA; // overdue > due_soon > good
-  return dB-dA; // within group, older first
-});
-let o=0,s=0,g=0;
-b.innerHTML=sorted.map(i=>{
-const d=i.days_since_last_contact!==undefined?i.days_since_last_contact:days(i.last_contact_date);
+            try {
+                const [clientsRes,
+                    activitiesRes] = await Promise.all([Auth.apiCall('/api/clients'),
+                    Auth.apiCall('/api/activity-feed?limit=100')]);
 
-const status=i.status||(d<7?'good':d<14?'due_soon':'overdue');
-const color=getColorByStatus(status);
-const label=getLabelByStatus(status);
-status==='overdue'?o++:status==='due_soon'?s++:g++;
-return`<tr><td><strong>${i.name||'Unknown'}</strong><br><small>${i.member_id||''} | ${i.city||''}</small></td><td>${i.contact_email||i.email||'N/A'}<br><small>Products: ${i.products_posted||0}</small></td><td><span class="status-indicator" style="background:${color}20;color:${color}"><i class="fas fa-circle"></i>${label}</span></td><td><small>${formatTime(i.last_contact_date)}</small></td><td><span style="font-weight:600;color:${color}">${d===999?'∞':d===0?'Today':d}</span></td><td><a href="/activity_logging_page/code.html?client=${i.id}" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i>Log</a></td></tr>`
-}).join('');
-document.getElementById('totalClients').textContent=c.length;
-document.getElementById('goodClients').textContent=g;
-document.getElementById('dueSoonClients').textContent=s;
-document.getElementById('overdueClients').textContent=o;
+                const clients = clientsRes.data || [];
+                const activities = activitiesRes.data || [];
 
-};
-async function loadStats(){
-try{
+                updateStats(clients);
+                renderClients(clients);
+                renderCharts(clients, activities);
 
-  const token=localStorage.getItem('token');
-  if(!token){return}
-  
-  console.log('Fetching employee stats...');
-  const res=await fetch(`${API}/api/employee/stats`,{headers:{Authorization:`Bearer ${token}`}});
+            }
 
-  console.log('Stats response status:', res.status);
-  
-  if(res.ok){
-    const stats=await res.json();
+            catch (e) {
+                console.error('Load error:', e);
 
-    console.log('Stats data:', stats);
-    document.getElementById('totalClients').textContent=stats.total_clients||0;
-    document.getElementById('goodClients').textContent=stats.good_clients||0;
-    document.getElementById('dueSoonClients').textContent=stats.due_soon_clients||0;
-    document.getElementById('overdueClients').textContent=stats.overdue_clients||0;
+            }
+            hide('loading');
+        }
 
-  } else {
-    const errorText = await res.text();
+        (async () => {
+            // Fetch latest user data to ensure name is correct
+            let user = await Auth.checkAuth();
+            if (!user) return;
 
-    console.error('Stats API error:', res.status, errorText);
-  }
-}catch(e){console.error('Stats error:',e)}
-}
-async function load(){
-try{
-  const btn=document.querySelector('button[onclick="loadClients()"]');
-  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>Loading...'}
-  const token=localStorage.getItem('token');
-  if(!token){location.href='../login_page/code.html';return}
-  show('loading');
-  
-  console.log('Fetching clients from API...');
-  const res=await fetch(`${API}/api/clients`,{headers:{Authorization:`Bearer ${token}`}});
+            try {
+                const freshUser = await Auth.apiCall('/api/auth/me');
+                if (freshUser) {
+                    user = freshUser;
+                    Auth.setUser(user); // Update session storage
+                }
+            } catch (e) {
+                console.warn('Failed to refresh user data:', e);
+            }
 
-  console.log('API response status:', res.status);
-  
-  if(!res.ok){
-    if(res.status===401){
-      localStorage.clear();sessionStorage.clear();
-      alert('Session expired');
-      setTimeout(()=>location.href='../login_page/code.html',1000);
-      return;
-    }
-    const errorText = await res.text();
-    console.error('API error:', res.status, errorText);
-    throw new Error(`API returned ${res.status}: ${errorText}`);
-  }
-  
-  const data=await res.json();
-  console.log('API response data:', data);
-  const list=(data.data||[]);
+            if (user.role === 'manager' || user.role === 'admin') {
+                location.href = '/manager_dashboard_page/code.html'; return
+            }
 
-  console.log('Client list:', list.length, 'clients');
-  
-  render(list);
+            document.getElementById('userName').textContent = user.name || 'User';
+            Sidebar.init('employee', 'dashboard');
 
-}catch(e){
+            // Inject chart containers
+            const statsGrid = document.querySelector('.stats-grid');
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'stats-grid'; // Reuse grid layout
+            chartContainer.style.marginTop = '24px';
+            chartContainer.innerHTML = ` <div class="stat-card" style="height: 300px;" > <canvas id="clientChart" ></canvas> </div> <div class="stat-card" style="height: 300px;" > <canvas id="activityChart" ></canvas> </div> `;
+            statsGrid.parentNode.insertBefore(chartContainer, statsGrid.nextSibling);
 
-  console.error('Load error:', e);
-  document.getElementById('clientsBody').innerHTML=`<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load clients</p><button class="btn btn-sm btn-primary" onclick="load()" style="margin-top:10px"><i class="fas fa-redo"></i>Retry</button></td></tr>`;}
-}finally{hide('loading');const btn=document.querySelector('button[onclick="loadClients()"]');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-sync-alt"></i>Refresh'}}
-}
-let debounceTimer;
-const filter=()=>{const s=document.getElementById('searchInput').value.toLowerCase();document.querySelectorAll('#clientsBody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(s)?'':'none')};
-const debouncedFilter=()=>{clearTimeout(debounceTimer);debounceTimer=setTimeout(filter,300)};
-window.loadClients=load;window.filterClients=debouncedFilter;window.loadStats=loadStats;
-document.addEventListener('DOMContentLoaded',async()=>{hide('loading');const user=await auth();if(user){await load();setInterval(()=>{load()},3e5);window.addEventListener('storage',e=>{if(e.key==='crm_last_contact_refresh'){load()}})}});
-</script>
-<script src="/debug_panel/debug.js"></script>
+            await load();
+
+            setInterval(() => load(), 300000); // Auto refresh every 5 mins
+        })();
+    </script>
 </body>
+
 </html>

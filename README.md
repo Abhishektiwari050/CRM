@@ -26,7 +26,7 @@ Competence CRM supports three roles: `admin`, `manager`, `employee`. Managers cr
 
 ## Setup and Deployment
 1. `pip install -r api/requirements.txt`
-2. Start backend: `python -m uvicorn api.index:app --reload --host 0.0.0.0 --port 8001`
+2. Start backend: `python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8001`
 3. Start UI proxy: `python server.py` (serves UI and proxies `/api/*`)
 4. Configure Supabase via environment variables to use production mode.
 

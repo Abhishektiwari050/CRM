@@ -59,7 +59,7 @@ class CRMHandler(BaseHTTPRequestHandler):
                     self.serve_html('/daily_work_report/code.html')
                     return
                 if page == 'dashboard':
-                    self.serve_html('/employee_dashboard_page/code.html')
+                    self.serve_html('/employee_dashboard_page/index.html')
                     return
             self.serve_404()
         elif req_path.endswith('.html'):
@@ -73,8 +73,24 @@ class CRMHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'')
         else:
             self.serve_404()
-    
+
     def do_POST(self):
+        parsed = urlparse(self.path)
+        req_path = parsed.path
+        if req_path.startswith('/api/'):
+            self.handle_api(req_path)
+        else:
+            self.serve_404()
+
+    def do_PUT(self):
+        parsed = urlparse(self.path)
+        req_path = parsed.path
+        if req_path.startswith('/api/'):
+            self.handle_api(req_path)
+        else:
+            self.serve_404()
+
+    def do_DELETE(self):
         parsed = urlparse(self.path)
         req_path = parsed.path
         if req_path.startswith('/api/'):
@@ -85,10 +101,10 @@ class CRMHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.end_headers()
-    
+
     def serve_login(self):
         try:
             login_file = Path(__file__).parent / 'login_page' / 'code.html'
@@ -164,6 +180,13 @@ class CRMHandler(BaseHTTPRequestHandler):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
+            # Inject Supabase credentials from environment
+            supa_url = os.getenv('SUPABASE_URL', '')
+            supa_key = os.getenv('SUPABASE_KEY', '')
+            if supa_url and supa_key:
+                injection = f"<script>window.SUPABASE_URL='{supa_url}';window.SUPABASE_ANON_KEY='{supa_key}';</script>"
+                content = content.replace('</head>', f'{injection}</head>')
+
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
@@ -177,7 +200,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             parsed = urlparse(self.path)
             path = req_path or parsed.path
             query = parsed.query
-            target_base = os.getenv('API_PROXY_TARGET', 'http://localhost:8000')
+            target_base = os.getenv('API_PROXY_TARGET', 'http://localhost:8001')
             target_url = f"{target_base}{path}{('?' + query) if query else ''}"
 
             body = b''

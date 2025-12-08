@@ -1,0 +1,3 @@
+CRM Server running on http://localhost:3000
+Backend API proxy: http://localhost:8001
+Ready for connections!

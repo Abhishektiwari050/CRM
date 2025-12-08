@@ -6,13 +6,13 @@ router = APIRouter()
 logger = logging.getLogger("crm")
 
 def verify_token(authorization: str = None):
-    # Import from main index
-    from api.index import verify_token as main_verify
+    # Import from dependencies
+    from api.dependencies import verify_token as main_verify
     return main_verify(authorization)
 
 @router.get("/api/debug/manager-full")
 def debug_manager_full(payload = Depends(verify_token)):
-    from api.index import supabase
+    from api.utils.database import supabase
     
     if not supabase:
         return {"error": "Supabase not configured"}

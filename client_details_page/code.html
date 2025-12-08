@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Details - Competence CRM</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/assets/sidebar.css">
+    <link rel="stylesheet" href="/assets/portal.css">
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+
+    <!-- Main Content -->
+    <main class="content">
+        <div class="dashboard-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h1 id="clientName">Loading...</h1>
+                    <p id="clientCompany">Client Details</p>
+                </div>
+                <button class="btn-primary" onclick="logActivity()">
+                    <i class="fas fa-plus"></i> Log Activity
+                </button>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="icon-wrapper"><i class="fas fa-info-circle"></i></div>
+                <h3 id="clientStatus">-</h3>
+                <p>Status</p>
+            </div>
+            <div class="stat-card green">
+                <div class="icon-wrapper"><i class="fas fa-calendar-check"></i></div>
+                <h3 id="lastContact">-</h3>
+                <p>Last Contact</p>
+            </div>
+            <div class="stat-card orange">
+                <div class="icon-wrapper"><i class="fas fa-hourglass-half"></i></div>
+                <h3 id="daysOverdue">-</h3>
+                <p>Days Since Contact</p>
+            </div>
+        </div>
+
+        <div class="main-card">
+            <div class="card-header">
+                <h2>Contact Information</h2>
+            </div>
+            <div class="card-body">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:24px;">
+                    <div>
+                        <label
+                            style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Email</label>
+                        <div id="clientEmail" style="font-size:15px; margin-top:4px;">-</div>
+                    </div>
+                    <div>
+                        <label
+                            style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Phone</label>
+                        <div id="clientPhone" style="font-size:15px; margin-top:4px;">-</div>
+                    </div>
+                    <div>
+                        <label
+                            style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Position</label>
+                        <div id="clientPosition" style="font-size:15px; margin-top:4px;">-</div>
+                    </div>
+                    <div>
+                        <label
+                            style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Expiry
+                            Date</label>
+                        <div id="clientExpiry" style="font-size:15px; margin-top:4px;">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-card">
+            <div class="card-header">
+                <h2>Recent Activity</h2>
+            </div>
+            <div class="card-body">
+                <div id="activityList"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/assets/auth.js"></script>
+    <script src="/assets/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Sidebar.init('employee', 'dashboard'); // Highlight dashboard as parent
+            initPage();
+        });
+
+        const els = {
+            loading: document.getElementById('loadingOverlay'),
+            name: document.getElementById('clientName'),
+            company: document.getElementById('clientCompany'),
+            email: document.getElementById('clientEmail'),
+            phone: document.getElementById('clientPhone'),
+            position: document.getElementById('clientPosition'),
+            expiry: document.getElementById('clientExpiry'),
+            status: document.getElementById('clientStatus'),
+            lastContact: document.getElementById('lastContact'),
+            daysOverdue: document.getElementById('daysOverdue'),
+            activityList: document.getElementById('activityList')
+        };
+
+        let currentClientId = null;
+
+        const showLoading = () => els.loading.classList.add('visible');
+        const hideLoading = () => els.loading.classList.remove('visible');
+
+        async function initPage() {
+            const user = await Auth.checkAuth('employee');
+            if (!user) return;
+
+            const params = new URLSearchParams(window.location.search);
+            currentClientId = params.get('id');
+
+            if (!currentClientId) {
+                alert('No client ID specified');
+                window.location.href = '/employee_dashboard_page/index.html';
+                return;
+            }
+
+            await loadClientDetails();
+            await loadClientHistory();
+        }
+
+        async function loadClientDetails() {
+            try {
+                showLoading();
+                // Note: Assuming /api/clients/{id} exists or filtering from list if not.
+                // The current API structure suggests /api/clients returns list. 
+                // Let's try to fetch list and find (inefficient but safe given current knowledge) 
+                // or try /api/clients/{id} if supported.
+                // Based on previous files, it seems we fetch all.
+
+                const res = await Auth.apiCall('/api/clients');
+                const client = (res.data || []).find(c => c.id == currentClientId);
+
+                if (!client) {
+                    throw new Error('Client not found');
+                }
+
+                renderClient(client);
+            } catch (e) {
+                console.error(e);
+                els.name.textContent = 'Error loading client';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderClient(c) {
+            els.name.textContent = c.name;
+            els.company.textContent = c.company_name || 'No Company';
+            els.email.textContent = c.contact_email || '-';
+            els.phone.textContent = c.contact_phone || '-';
+            els.position.textContent = c.position || '-';
+            els.expiry.textContent = c.expiry_date ? new Date(c.expiry_date).toLocaleDateString() : '-';
+
+            const last = c.last_contact_date ? new Date(c.last_contact_date) : null;
+            els.lastContact.textContent = last ? last.toLocaleDateString() : 'Never';
+
+            const now = new Date();
+            const days = last ? Math.ceil((now - last) / (1000 * 60 * 60 * 24)) : 999;
+            els.daysOverdue.textContent = last ? `${days} days` : 'N/A';
+
+            const status = calculateStatus(c.expiry_date);
+            els.status.textContent = status;
+        }
+
+        async function loadClientHistory() {
+            try {
+                // Fetch activity feed filtered by client? 
+                // The API /api/activity-feed might not support client_id filtering directly based on previous code,
+                // but let's try or filter client side.
+                // Re-checking activity_logging_page code: url.searchParams.set('search', q);
+                // It doesn't seem to have client_id filter explicitly shown in snippets, but let's try search by name.
+
+                // Actually, let's just fetch recent and filter.
+                const res = await Auth.apiCall('/api/activity-feed?limit=100');
+                const activities = (res.data || []).filter(a => a.client_id == currentClientId);
+
+                if (activities.length === 0) {
+                    els.activityList.innerHTML = '<p style="text-align:center; color:var(--text-muted)">No recent activity.</p>';
+                    return;
+                }
+
+                els.activityList.innerHTML = activities.map(a => `
+                    <div style="padding: 12px; border-bottom: 1px solid var(--border);">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <strong style="font-size:14px; color:var(--text-main)">${a.category}</strong>
+                            <span style="font-size:12px; color:var(--text-muted)">${new Date(a.created_at).toLocaleString()}</span>
+                        </div>
+                        <div style="font-size:13px; color:var(--text-main); margin-bottom:4px;">
+                            ${a.outcome}
+                        </div>
+                        <div style="font-size:13px; color:var(--text-muted)">${a.notes || ''}</div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function calculateStatus(expiryDate) {
+            if (!expiryDate) return 'Unknown';
+            const days = Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+            if (days < 0) return 'Overdue';
+            if (days <= 30) return 'Due Soon';
+            return 'Good';
+        }
+
+        function logActivity() {
+            window.location.href = `/activity_logging_page/code.html?client=${currentClientId}`;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,48 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notifications - Competence Consulting</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="/static/css/notifications.css">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#212529}.wrapper{display:flex;min-height:100vh}.sidebar{width:260px;background:linear-gradient(180deg,#6366f1 0%,#8b5cf6 100%);color:#fff;position:fixed;height:100vh;overflow-y:auto;z-index:1000;box-shadow:2px 0 10px rgba(0,0,0,.1);transition:transform .3s}.sidebar-header{padding:24px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.15)}.sidebar-header img{width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#fff;padding:8px}.sidebar-header h4{font-size:15px;font-weight:700;margin-bottom:4px}.sidebar-header .role{font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px}.sidebar-nav{padding:16px 0}.sidebar-nav a{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.85);text-decoration:none;transition:all .2s;position:relative;font-size:14px}.sidebar-nav a:hover{background:rgba(255,255,255,.1);color:#fff}.sidebar-nav a.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600}.sidebar-nav a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#a78bfa}.sidebar-nav a i{width:20px;margin-right:12px;font-size:16px}.nav-divider{height:1px;background:rgba(255,255,255,.1);margin:12px 20px}.content{margin-left:260px;flex:1;padding:24px;width:calc(100% - 260px)}.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px}.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0}.header p{color:#64748b;font-size:14px;margin-top:4px}.tabs{display:flex;gap:8px;margin-bottom:24px;background:#fff;padding:8px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}.tab{padding:12px 24px;border:none;background:transparent;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;transition:all .2s;position:relative}.tab.active{background:#3b82f6;color:#fff}.tab .badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden}.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.loading.show{display:flex}.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.mobile-toggle{display:none;position:fixed;top:16px;left:16px;z-index:1001;background:#3b82f6;color:#fff;border:none;padding:12px 16px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.content{margin-left:0;padding:16px;width:100%}.mobile-toggle{display:block}.tabs{overflow-x:auto}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Competence CRM</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/assets/sidebar.css">
+    <link rel="stylesheet" href="/assets/portal.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab.active {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .tab .badge {
+            margin-left: 8px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+    </style>
 </head>
+
 <body>
-<div class="loading" id="loading"><div class="spinner"></div></div>
-<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
 
-<div class="wrapper">
-<aside class="sidebar" id="sidebar">
-<div class="sidebar-header">
-<img src="/static/images/logo.png" alt="Logo" class="brand-logo">
-<h4>Competence Consulting</h4>
-<div class="role" id="roleText">Portal</div>
-</div>
-<nav class="sidebar-nav" id="sidebarNav"></nav>
-</aside>
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
 
-<main class="content">
-<div class="header">
-<h2>Notifications & Reminders</h2>
-<p>Stay updated with client reminders and system notifications</p>
-</div>
+    <!-- Main Content -->
+    <main class="content">
+        <div class="dashboard-header">
+            <h1>Notifications</h1>
+            <p>Stay updated with client reminders and system alerts</p>
+        </div>
 
-<div class="tabs">
-<button class="tab active" onclick="switchTab('reminders')" id="remindersTab"><i class="fas fa-bell"></i> Reminders <span class="badge" id="remindersBadge" style="display:none">0</span></button>
-<button class="tab" onclick="switchTab('notifications')" id="notificationsTab"><i class="fas fa-info-circle"></i> Notifications <span class="badge" id="notificationsBadge" style="display:none">0</span></button>
-</div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('reminders')" id="remindersTab">
+                <i class="fas fa-bell"></i> Reminders
+                <span class="badge" id="remindersBadge" style="display:none">0</span>
+            </button>
+            <button class="tab" onclick="switchTab('notifications')" id="notificationsTab">
+                <i class="fas fa-info-circle"></i> System Alerts
+                <span class="badge" id="notificationsBadge" style="display:none">0</span>
+            </button>
+        </div>
 
-<div class="card" id="remindersContainer"></div>
-<div class="card" id="notificationsContainer" style="display:none"></div>
-</main>
-</div>
+        <div class="main-card" id="remindersContainer">
+            <div class="card-header">
+                <h2>Client Reminders</h2>
+            </div>
+            <div class="card-body">
+                <div id="remindersList"></div>
+            </div>
+        </div>
 
-<script src="/static/js/notification-system.js"></script>
-<script>
-const logout=()=>{localStorage.clear();sessionStorage.clear();location.href='../login_page/code.html'},auth=async()=>{try{const u=sessionStorage.getItem('currentUser');if(!u)return location.href='../login_page/code.html',null;const d=JSON.parse(u);document.getElementById('roleText').textContent=d.role==='manager'?'Manager Portal':'Employee Portal';const nav=d.role==='manager'?`<a href="/manager_dashboard_page/code.html"><i class="fas fa-chart-line"></i>Dashboard</a><a href="/management_page/code.html"><i class="fas fa-users"></i>All Clients</a><a href="/notifications_page/code.html" class="active"><i class="fas fa-bell"></i>Notifications</a><a href="/reports_page/code.html"><i class="fas fa-file-alt"></i>Reports</a>`:`<a href="/employee_dashboard_page/code.html"><i class="fas fa-home"></i>My Dashboard</a><a href="/activity_logging_page/code.html"><i class="fas fa-clipboard-check"></i>Log Client Contact</a><a href="/daily_work_report/code.html"><i class="fas fa-file-alt"></i>Submit Daily Report</a><a href="/notifications_page/code.html" class="active"><i class="fas fa-bell"></i>Notifications</a>`;document.getElementById('sidebarNav').innerHTML=nav+`<div class="nav-divider"></div><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>`;return d}catch(e){return location.href='../login_page/code.html',null}},days=d=>{if(!d)return 999;const t=new Date(),l=new Date(d);return Math.ceil((t-l)/(864e5))};let remindersSystem,notificationsSystem;async function loadReminders(){const t=localStorage.getItem('token'),r=await fetch(`${window.location.origin}/api/clients`,{headers:{Authorization:`Bearer ${t}`}});if(!r.ok)throw new Error('Failed');const d=await r.json(),overdue=d.data.filter(c=>{const dy=days(c.last_contact_date||c.last_contact);return dy>14||dy===999}).map(c=>{const dy=days(c.last_contact_date||c.last_contact);return{id:c.id,type:'reminder',title:c.name||c.company_name||'Unknown Client',message:c.contact_info?.email||c.contact_email||'N/A',created_at:c.last_contact_date||new Date().toISOString(),read:false,action:'Contact',meta:{days:dy}}});return overdue}async function loadNotifications(){const t=localStorage.getItem('token'),r=await fetch(`${window.location.origin}/api/reminders`,{headers:{Authorization:`Bearer ${t}`}});if(!r.ok)return[];const d=await r.json();return(d.data||[]).map(i=>({id:i.id,type:'info',title:i.type||'Notification',message:i.message||'No message',created_at:i.created_at,read:i.status!=='pending'}))}function switchTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.getElementById(t+'Tab').classList.add('active');if(t==='reminders'){document.getElementById('remindersContainer').style.display='block';document.getElementById('notificationsContainer').style.display='none'}else{document.getElementById('remindersContainer').style.display='none';document.getElementById('notificationsContainer').style.display='block'}}window.handleNotifAction=id=>{location.href=`/activity_logging_page/code.html?client=${id}`};window.switchTab=switchTab;document.addEventListener('DOMContentLoaded',async()=>{const user=await auth();if(!user)return;const role=user.role==='manager'?'manager':'employee';remindersSystem=await NotificationSystem.init(role,'remindersContainer','clients');notificationsSystem=await NotificationSystem.init(role,'notificationsContainer','reminders');const reminders=await loadReminders();const notifications=await loadNotifications();remindersSystem.ui.render(reminders);notificationsSystem.ui.render(notifications);const rCount=reminders.filter(r=>!r.read).length;const nCount=notifications.filter(n=>!n.read).length;if(rCount>0){document.getElementById('remindersBadge').textContent=rCount;document.getElementById('remindersBadge').style.display='flex'}if(nCount>0){document.getElementById('notificationsBadge').textContent=nCount;document.getElementById('notificationsBadge').style.display='flex'}});
-</script>
+        <div class="main-card" id="notificationsContainer" style="display:none">
+            <div class="card-header">
+                <h2>System Notifications</h2>
+            </div>
+            <div class="card-body">
+                <div id="notificationsList"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/assets/auth.js"></script>
+    <script src="/assets/sidebar.js"></script>
+    <script src="/static/js/notification-system.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await Auth.checkAuth();
+            if (!user) return;
+
+            const role = user.role === 'manager' ? 'manager' : 'employee';
+            Sidebar.init(role, 'notifications');
+
+            await initNotifications(role);
+        });
+
+        const els = {
+            loading: document.getElementById('loadingOverlay'),
+            remindersList: document.getElementById('remindersList'),
+            notificationsList: document.getElementById('notificationsList')
+        };
+
+        const showLoading = () => els.loading.classList.add('visible');
+        const hideLoading = () => els.loading.classList.remove('visible');
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+
+            if (tab === 'reminders') {
+                document.getElementById('remindersContainer').style.display = 'block';
+                document.getElementById('notificationsContainer').style.display = 'none';
+            } else {
+                document.getElementById('remindersContainer').style.display = 'none';
+                document.getElementById('notificationsContainer').style.display = 'block';
+            }
+        }
+
+        async function initNotifications(role) {
+            try {
+                showLoading();
+
+                // Initialize System (from existing logic)
+                // Note: We are reusing the existing notification-system.js logic but rendering manually for better control or using its render method if compatible.
+                // The existing code used NotificationSystem.init which rendered into containers.
+                // Let's try to reuse that but point to our new containers.
+
+                // Wait, the existing code had specific IDs. Let's check if we need to adapt.
+                // Existing: NotificationSystem.init(role, 'remindersContainer', 'clients')
+                // It expects container IDs.
+
+                // However, I want to style them nicely. Let's manually fetch and render to ensure UI consistency.
+
+                const reminders = await loadReminders();
+                const notifications = await loadNotifications();
+
+                renderList(reminders, els.remindersList, 'reminder');
+                renderList(notifications, els.notificationsList, 'notification');
+
+                updateBadges(reminders, notifications);
+
+            } catch (e) {
+                console.error(e);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadReminders() {
+            const res = await Auth.apiCall('/api/clients');
+            const clients = res.data || [];
+            const now = new Date();
+
+            return clients.filter(c => {
+                const last = c.last_contact_date ? new Date(c.last_contact_date) : new Date(0);
+                const days = Math.ceil((now - last) / (1000 * 60 * 60 * 24));
+                return days > 14;
+            }).map(c => ({
+                id: c.id,
+                title: c.name,
+                message: `Last contacted ${new Date(c.last_contact_date).toLocaleDateString()}`,
+                days: Math.ceil((now - new Date(c.last_contact_date || 0)) / (1000 * 60 * 60 * 24)),
+                type: 'reminder'
+            }));
+        }
+
+        async function loadNotifications() {
+            try {
+                const res = await Auth.apiCall('/api/notifications');
+                return (res.data || []).map(n => ({
+                    ...n,
+                    type: 'notification'
+                }));
+            } catch { return []; }
+        }
+
+        function renderList(items, container, type) {
+            if (items.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-muted)">No items found.</p>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div style="padding: 16px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:600; color:var(--text-main); margin-bottom:4px;">${item.title}</div>
+                        <div style="font-size:13px; color:var(--text-muted);">${item.message}</div>
+                        ${item.days ? `<div style="font-size:12px; color:#ef4444; margin-top:4px;">${item.days} days overdue</div>` : ''}
+                    </div>
+                    ${type === 'reminder' ? `
+                        <button class="btn-primary" style="padding:6px 12px; font-size:12px;" onclick="location.href='/activity_logging_page/code.html?client=${item.id}'">
+                            Contact
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function updateBadges(reminders, notifications) {
+            if (reminders.length > 0) {
+                const b = document.getElementById('remindersBadge');
+                b.textContent = reminders.length;
+                b.style.display = 'inline-block';
+            }
+            if (notifications.length > 0) {
+                const b = document.getElementById('notificationsBadge');
+                b.textContent = notifications.length;
+                b.style.display = 'inline-block';
+            }
+        }
+    </script>
 </body>
+
 </html>

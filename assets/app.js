@@ -1,10 +1,10 @@
 // Centralized App Configuration and Utilities
 const APP = {
-  API_URL: 'http://localhost:8000',
-  
+  API_URL: window.location.origin,
+
   // Get auth token
   getToken: () => localStorage.getItem('token'),
-  
+
   // Get current user
   getUser: () => {
     try {
@@ -13,23 +13,23 @@ const APP = {
       return null;
     }
   },
-  
+
   // Check authentication
   isAuthenticated: () => !!APP.getToken() && !!APP.getUser(),
-  
+
   // Logout
   logout: () => {
     localStorage.clear();
     sessionStorage.clear();
     window.location.href = '/login_page/code.html';
   },
-  
+
   // Show/hide loading
   loading: {
     show: () => document.getElementById('loading')?.classList.add('show'),
     hide: () => document.getElementById('loading')?.classList.remove('show')
   },
-  
+
   // Alert messages
   alert: (message, type = 'success') => {
     const container = document.getElementById('alertContainer');
@@ -40,7 +40,7 @@ const APP = {
     container.appendChild(alert);
     setTimeout(() => alert.remove(), 5000);
   },
-  
+
   // API call wrapper
   api: async (endpoint, options = {}) => {
     const token = APP.getToken();
@@ -52,11 +52,11 @@ const APP = {
       },
       ...options
     };
-    
+
     try {
       const response = await fetch(`${APP.API_URL}${endpoint}`, config);
       const data = await response.json();
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           APP.logout();
@@ -64,27 +64,27 @@ const APP = {
         }
         throw new Error(data.error?.message || 'Request failed');
       }
-      
+
       return { ok: true, data };
     } catch (error) {
       console.error(`API Error [${endpoint}]:`, error);
       return { ok: false, error: error.message };
     }
   },
-  
+
   // Calculate days since date
   daysSince: (date) => {
     if (!date) return 999;
     return Math.ceil((new Date() - new Date(date)) / 86400000);
   },
-  
+
   // Get status color
   getStatusColor: (days) => {
     if (days <= 7) return { color: '#10b981', label: 'Good', class: 'success' };
     if (days <= 14) return { color: '#f59e0b', label: 'Due Soon', class: 'warning' };
     return { color: '#ef4444', label: 'Overdue', class: 'danger' };
   },
-  
+
   // Redirect based on role
   redirectByRole: (user) => {
     if (!user) {
@@ -98,19 +98,19 @@ const APP = {
       window.location.href = '/employee_dashboard_page/code.html';
     }
   },
-  
+
   // Render sidebar
   renderSidebar: (role, activePage) => {
     const nav = document.getElementById('sidebarNav');
     if (!nav) return;
-    
+
     const user = APP.getUser();
     const userName = user?.name || 'User';
-    
+
     // Update header if exists
     const userNameEl = document.getElementById('userName');
     if (userNameEl) userNameEl.textContent = userName;
-    
+
     let links = '';
     if (role === 'employee') {
       links = `
@@ -143,7 +143,7 @@ const APP = {
         </a>
       `;
     }
-    
+
     nav.innerHTML = links + `
       <div class="nav-divider"></div>
       <a href="#" onclick="APP.logout(); return false;">

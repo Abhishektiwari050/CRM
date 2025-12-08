@@ -1,587 +1,1205 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team Management - Competence Consulting E-commerce LLP</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="/assets/api.js"></script>
-<script src="/assets/ui.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#212529}.wrapper{display:flex;min-height:100vh}.sidebar{width:260px;background:linear-gradient(180deg,#6366f1 0%,#8b5cf6 100%);color:#fff;position:fixed;height:100vh;overflow-y:auto;z-index:1000;box-shadow:2px 0 10px rgba(0,0,0,.1);transition:transform .3s}.sidebar-header{padding:24px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.15)}.sidebar-header img{width:56px;height:56px;margin:0 auto 12px;border-radius:8px;object-fit:contain;background:#fff;padding:4px}.sidebar-header h4{font-size:14px;font-weight:700;margin-bottom:4px;line-height:1.3}.sidebar-header .role{font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px}.sidebar-nav{padding:16px 0}.sidebar-nav a{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.85);text-decoration:none;transition:all .2s;position:relative;font-size:14px}.sidebar-nav a:hover{background:rgba(255,255,255,.1);color:#fff}.sidebar-nav a.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600}.sidebar-nav a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#a78bfa}.sidebar-nav a i{width:20px;margin-right:12px;font-size:16px}.nav-divider{height:1px;background:rgba(255,255,255,.1);margin:12px 20px}.content{margin-left:260px;flex:1;padding:24px;width:calc(100% - 260px)}.header{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px;display:flex;justify-content:space-between;align-items:center}.header h2{font-size:26px;color:#1e293b;font-weight:700;margin:0}.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden}.card-header{padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;background:#fafbfc}.card-header h5{font-size:18px;color:#1e293b;margin:0;font-weight:700}.card-body{padding:24px}.tabs{display:flex;gap:8px;margin-bottom:24px;background:#fff;padding:8px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}.tab{padding:12px 24px;border:none;background:transparent;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;transition:all .2s}.tab.active{background:#6366f1;color:#fff}.table-responsive{overflow-x:auto;border-radius:8px;border:1px solid #f1f5f9}table{width:100%;border-collapse:collapse;font-size:14px}thead{background:#f8fafc}th{padding:14px 16px;text-align:left;font-weight:700;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}td{padding:14px 16px;border-bottom:1px solid #f1f5f9;color:#334155}tbody tr{transition:background .15s}tbody tr:hover{background:#f8fafc}tbody tr:last-child td{border-bottom:0}.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}.badge-success{background:#d1fae5;color:#065f46}.badge-danger{background:#fee2e2;color:#991b1b}.badge-warning{background:#fef3c7;color:#92400e}.btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:8px}.btn-primary{background:#6366f1;color:#fff}.btn-primary:hover{background:#4f46e5}.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}.btn-sm{padding:7px 14px;font-size:13px}.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.loading.show{display:flex}.spinner{border:4px solid rgba(255,255,255,.2);border-top:4px solid #fff;border-radius:50%;width:50px;height:50px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.empty-state{text-align:center;padding:60px 20px;color:#94a3b8}.empty-state i{font-size:56px;margin-bottom:16px;opacity:.4}.alert{padding:14px 20px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:14px;animation:slideIn .3s}.alert-success{background:#d1fae5;color:#065f46;border-left:4px solid #10b981}.alert-danger{background:#fee2e2;color:#991b1b;border-left:4px solid #dc2626}@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}.mobile-toggle{display:none;position:fixed;top:16px;left:16px;z-index:1001;background:#6366f1;color:#fff;border:none;padding:12px 16px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center}.modal.show{display:flex}.modal-content{background:#fff;border-radius:12px;padding:24px;max-width:500px;width:90%}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.modal-header h3{font-size:20px;color:#1e293b}.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:#64748b}.form-group{margin-bottom:16px}.form-group label{display:block;font-weight:600;color:#1e293b;margin-bottom:8px;font-size:14px}.form-group input,.form-group select{width:100%;padding:10px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px}.form-group input:focus,.form-group select:focus{outline:0;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1)}@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.content{margin-left:0;padding:16px;width:100%}.mobile-toggle{display:block}table{font-size:12px}th,td{padding:10px 8px}}
-</style>
-</head>
-<body>
-<div class="loading" id="loading"><div class="spinner"></div></div>
-<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
-
-<div class="wrapper">
-<aside class="sidebar" id="sidebar">
-<div class="sidebar-header">
-<img src="/static/images/logo.png" alt="Competence Consulting E-commerce LLP" class="brand-logo">
-<h4 class="brand-name">Competence Consulting E-commerce LLP</h4>
-<div class="role">Manager Portal</div>
-</div>
-<nav class="sidebar-nav">
-<a href="/manager_dashboard_page/code.html"><i class="fas fa-chart-line"></i>Dashboard</a>
-<a href="/management_page/code.html" class="active"><i class="fas fa-users"></i>All Clients</a>
-<a href="/notifications_page/code.html"><i class="fas fa-bell"></i>Notifications</a>
-<a href="/reports_page/code.html"><i class="fas fa-file-alt"></i>Reports</a>
-<div class="nav-divider"></div>
-<a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>
-</nav>
-</aside>
-
-<main class="content">
-<div class="header">
-<h2>Team Management</h2>
-<div style="display:flex;gap:12px">
-<button class="btn btn-success" onclick="showModal('employee')"><i class="fas fa-user-plus"></i>Add Employee</button>
-<button class="btn btn-primary" onclick="showModal('client')"><i class="fas fa-briefcase"></i>Add Client</button>
-<button class="btn btn-primary" onclick="showModal('bulk')"><i class="fas fa-layer-group"></i>Bulk Add Clients</button>
-</div>
-</div>
-
-<div id="alertContainer"></div>
-
-<div class="tabs">
-<button class="tab active" onclick="switchTab('employees')">Employees</button>
-<button class="tab" onclick="switchTab('clients')">Clients</button>
-</div>
-
-<div class="card" id="employeesTab">
-<div class="card-header">
-<h5><i class="fas fa-users"></i>Team Members</h5>
-<button class="btn btn-sm btn-primary" onclick="loadEmployees()"><i class="fas fa-sync"></i>Refresh</button>
-</div>
-<div class="card-body">
-<div class="table-responsive">
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Role</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="employeesBody">
-<tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-
-<div class="card" id="clientsTab" style="display:none">
-<div class="card-header">
-<h5><i class="fas fa-briefcase"></i>All Clients</h5>
-<div style="display:flex;gap:8px;align-items:center">
-<button class="btn btn-sm btn-primary" onclick="loadClients()"><i class="fas fa-sync"></i>Refresh</button>
-<button class="btn btn-sm btn-success" onclick="assignRoundRobin()"><i class="fas fa-random"></i>Assign Round Robin</button>
-</div>
-</div>
-<div class="card-body">
-<div class="table-responsive">
-<table>
-<thead>
-<tr>
-<th>Client Name</th>
-<th>Contact</th>
-<th>Last Contact</th>
-<th>Days</th>
-<th>Assigned To</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="clientsBody">
-<tr><td colspan="7" class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr>
-</tbody>
-</table>
-</div>
-<div id="assignmentResult" class="empty-state" style="display:none"></div>
-</div>
-</div>
-
-<div class="card" id="workloadCard" style="margin-top:16px">
-  <div class="card-header">
-    <h5><i class="fas fa-balance-scale"></i>Workload Distribution</h5>
-    <button class="btn btn-sm btn-primary" onclick="loadWorkload()"><i class="fas fa-sync"></i>Refresh</button>
-  </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Assigned Clients</th>
-            <th>Postings Today</th>
-          </tr>
-        </thead>
-        <tbody id="workloadBody">
-          <tr><td colspan="3" class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-</main>
-</div>
-
-<div class="modal" id="modal">
-<div class="modal-content">
-<div class="modal-header">
-<h3 id="modalTitle">Add</h3>
-<button class="modal-close" onclick="closeModal()">&times;</button>
-</div>
-<form id="modalForm">
-<div id="formFields"></div>
-<div style="display:flex;gap:12px;margin-top:20px">
-<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Save</button>
-<button type="button" class="btn btn-danger" onclick="closeModal()">Cancel</button>
-</div>
-</form>
-</div>
-</div>
-
-<script src="/static/js/branding.js"></script>
-<script>
-const API=window.location.origin;
-const show=id=>document.getElementById(id).classList.add('show'),hide=id=>document.getElementById(id).classList.remove('show'),alert=(m,t='success')=>{const c=document.getElementById('alertContainer'),a=document.createElement('div');a.className=`alert alert-${t}`;a.innerHTML=`<i class=\"fas fa-${t==='danger'?'times':'check'}-circle\"></i>${m}`;c.appendChild(a);setTimeout(()=>a.remove(),5000)};
-
-function logout(){
-  localStorage.clear();
-  sessionStorage.clear();
-  location.href='../login_page/code.html'
-}
-
-async function auth(){
-  try{
-    const u=sessionStorage.getItem('currentUser');
-    if(!u){ location.href='../login_page/code.html'; return null }
-    const d=JSON.parse(u);
-    if(d.role!=='manager'&&d.role!=='admin'){
-      location.href='../employee_dashboard_page/code.html';
-      return null;
-    }
-    return d;
-  }catch(e){
-    location.href='../login_page/code.html';
-    return null;
-  }
-}
-
-function switchTab(t){
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  if(t==='employees'){
-    document.getElementById('employeesTab').style.display='block';
-    document.getElementById('clientsTab').style.display='none';
-  }else{
-    document.getElementById('employeesTab').style.display='none';
-    document.getElementById('clientsTab').style.display='block';
-  }
-}
-
-function showModal(t){
-  document.getElementById('modalTitle').textContent=t==='employee'?'Add Employee':t==='bulk'?'Bulk Add Clients':'Add Client';
-  const f=document.getElementById('formFields');
-  if(t==='employee'){
-    f.innerHTML=`<div class="form-group"><label>Name *</label><input type="text" name="name" required></div>
-       <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
-       <div class="form-group"><label>Password *</label><input type="password" name="password" required></div>`;
-  }else if(t==='bulk'){
-    f.innerHTML=`<div class="form-group"><label>Upload CSV File</label><input type="file" name="csv" accept=".csv" id="csvFile"></div>
-       <p style="color:#64748b;font-size:12px;margin-bottom:16px"><i class="fas fa-info-circle"></i> CSV format: name,member_id,city,products_posted,expiry_date,email,phone</p>
-       <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px">
-       <p style="font-weight:600;margin-bottom:12px">OR Generate Random Clients:</p>
-       <div class="form-group"><label>Number of Clients</label><input type="number" name="count" min="1" max="500" value="140"></div>
-       <div class="form-group"><label>Auto-assign to employees?</label><select name="auto_assign"><option value="yes">Yes - Equal distribution</option><option value="no">No - Manual later</option></select></div>
-       <p style="color:#64748b;font-size:12px"><i class="fas fa-info-circle"></i> Clients will be named Client 1, Client 2, etc.</p></div>`;
-  }else{
-    f.innerHTML=`<div class="form-group"><label>Client Name *</label><input type="text" name="name" required></div>
-       <div class="form-group"><label>Member ID</label><input type="text" name="member_id" placeholder="MEM001"></div>
-       <div class="form-group"><label>City</label><input type="text" name="city" placeholder="Mumbai"></div>
-       <div class="form-group"><label>Products Posted</label><input type="number" name="products_posted" min="0" value="0"></div>
-       <div class="form-group"><label>Expiry Date (Optional)</label><input type="text" name="expiry_date" placeholder="YYYY-MM-DD (e.g., 2026-03-15)"></div>
-       <div class="form-group"><label>Email</label><input type="email" name="email"></div>
-       <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>`;
-  }
-  document.getElementById('modal').classList.add('show');
-  document.getElementById('modalForm').onsubmit=e=>{
-    e.preventDefault();
-    if(t==='employee') addEmployee(new FormData(e.target));
-    else if(t==='bulk') bulkAddClients(new FormData(e.target));
-    else addClient(new FormData(e.target));
-  }
-}
-
-function closeModal(){
-  document.getElementById('modal').classList.remove('show');
-}
-
-function renderEmployees(u){
-  const b=document.getElementById('employeesBody');
-  if(!u||!u.length){
-    b.innerHTML='<tr><td colspan="5" class="empty-state"><i class="fas fa-inbox"></i><p>No employees</p></td></tr>';
-    return;
-  }
-  b.innerHTML=u.map(i=>`<tr>
-    <td><strong>${i.name}</strong></td>
-    <td>${i.email}</td>
-    <td><span class="badge badge-${i.role==='admin'?'danger':i.role==='manager'?'warning':'success'}">${i.role}</span></td>
-    <td><span class="badge badge-success">Active</span></td>
-    <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${i.id}')"><i class="fas fa-trash"></i>Delete</button></td>
-  </tr>`).join('');
-}
-
-let allEmployees=[];
-const days=d=>{if(!d)return 999;return Math.ceil((new Date()-new Date(d))/864e5)};
-function renderClients(c){
-  const b=document.getElementById('clientsBody');
-  if(!c||!c.length){
-    b.innerHTML='<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>No clients</p></td></tr>';
-    return;
-  }
-  const sorted=c.sort((a,b)=>days(b.last_contact_date)-days(a.last_contact_date));
-  b.innerHTML=sorted.map(i=>{
-    const d=days(i.last_contact_date);
-    const color=d<=7?'#10b981':d<=14?'#f59e0b':'#ef4444';
-    const label=d<=7?'Good':d<=14?'Due Soon':'Overdue';
-    const empName=allEmployees.find(e=>e.id===i.assigned_employee_id)?.name||'Unassigned';
-    return`<tr>
-    <td><strong>${i.name||'Unknown'}</strong><br><small>${i.member_id||''} | ${i.city||''}</small></td>
-    <td>${i.contact_email||'N/A'}<br><small>Products: ${i.products_posted||0} | Exp: ${i.expiry_date||'N/A'}</small></td>
-    <td>${i.last_contact_date||'Never'}</td>
-    <td><span style="font-weight:600;color:${color}">${d===999?'∞':d}</span></td>
-    <td><select class="assign-select" data-client-id="${i.id}" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px">
-      <option value="">Unassigned</option>
-      ${allEmployees.map(e=>`<option value="${e.id}" ${i.assigned_employee_id===e.id?'selected':''}>${e.name}</option>`).join('')}
-    </select></td>
-    <td><span class="badge badge-${d<=7?'success':d<=14?'warning':'danger'}">${label}</span></td>
-    <td><button class="btn btn-sm btn-danger" onclick="deleteClient('${i.id}')"><i class="fas fa-trash"></i>Delete</button></td>
-  </tr>`
-  }).join('');
-  document.querySelectorAll('.assign-select').forEach(sel=>{
-    sel.addEventListener('change',async(e)=>{
-      const clientId=e.target.dataset.clientId;
-      const employeeId=e.target.value;
-      if(!employeeId)return;
-      try{
-        show('loading');
-        const token=localStorage.getItem('token');
-        console.log('Assigning client',clientId,'to employee',employeeId);
-        const res=await fetch(`${API}/api/clients/${clientId}/assign`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({employee_id:employeeId})});
-        if(!res.ok){
-          const err=await res.json().catch(()=>({}));
-          throw new Error(err.error?.message||'Failed to assign');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management - Competence Consulting E-commerce LLP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="/assets/api.js"></script>
+    <script src="/assets/ui.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
         }
-        const result=await res.json();
-        console.log('Client assigned:',result);
-        alert('Client assigned successfully!');
-        await loadWorkload();
-      }catch(err){
-        console.error('Assign error:',err);
-        alert(err.message||'Failed to assign client','danger');
-        e.target.value='';
-      }finally{hide('loading')}
-    });
-  });
-}
 
-async function loadEmployees(){
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    if(!token) throw new Error('No auth token');
-    console.log('Fetching employees from:',`${API}/api/users`);
-    const res=await fetch(`${API}/api/users`,{headers:{Authorization:`Bearer ${token}`}});
-    console.log('Employees response:',res.status,res.statusText);
-    if(!res.ok){
-      const err=await res.text();
-      console.error('Employees API error:',err);
-      throw new Error(`API error ${res.status}: ${err}`);
-    }
-    const d=await res.json();
-    console.log('Employees data:',d);
-    allEmployees=(d.data||[]).filter(u=>u.role==='employee');
-    console.log('Filtered employees:',allEmployees.length);
-    renderEmployees(d.data||[]);
-  }catch(e){
-    console.error('Load employees error:',e);
-    document.getElementById('employeesBody').innerHTML=`<tr><td colspan="5" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></td></tr>`;
-    alert(e.message||'Failed to load employees','danger');
-  }finally{ hide('loading') }
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529
+        }
 
-async function loadClients(){
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    if(!token) throw new Error('No auth token');
-    console.log('Fetching clients from:',`${API}/api/clients`);
-    const res=await fetch(`${API}/api/clients`,{headers:{Authorization:`Bearer ${token}`}});
-    console.log('Clients response:',res.status,res.statusText);
-    if(!res.ok){
-      const err=await res.text();
-      console.error('Clients API error:',err);
-      throw new Error(`API error ${res.status}: ${err}`);
-    }
-    const d=await res.json();
-    console.log('Clients data:',d);
-    console.log('Client count:',d.data?.length||0);
-    renderClients(d.data||[]);
-  }catch(e){
-    console.error('Load clients error:',e);
-    document.getElementById('clientsBody').innerHTML=`<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></td></tr>`;
-    alert(e.message||'Failed to load clients','danger');
-  }finally{ hide('loading') }
-}
+        .wrapper {
+            display: flex;
+            min-height: 100vh
+        }
 
-async function addEmployee(f){
-  const btn=event.target.querySelector('button[type="submit"]');if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving...'}
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    const payload={name:f.get('name'),email:f.get('email'),password:f.get('password')};
-    console.log('Creating employee:',payload);
-    const res=await fetch(`${API}/api/employees`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to add employee');
-    }
-    const result=await res.json();
-    console.log('Employee created:',result);
-    alert('Employee added successfully!');
-    closeModal();
-    await loadEmployees();
-  }catch(e){
-    console.error('Add employee error:',e);
-    alert(e.message||'Failed to add employee','danger');
-  }finally{ hide('loading');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save'} }
-}
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, .1);
+            transition: transform .3s
+        }
 
-async function addClient(f){
-  const btn=event.target.querySelector('button[type="submit"]');if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving...'}
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    const payload={name:f.get('name'),member_id:f.get('member_id'),city:f.get('city'),products_posted:parseInt(f.get('products_posted'))||0,expiry_date:f.get('expiry_date'),email:f.get('email'),phone:f.get('phone')};
-    console.log('Creating client:',payload);
-    const res=await fetch(`${API}/api/clients`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to add client');
-    }
-    const result=await res.json();
-    console.log('Client created:',result);
-    alert('Client added successfully!');
-    closeModal();
-    await loadClients();
-  }catch(e){
-    console.error('Add client error:',e);
-    alert(e.message||'Failed to add client','danger');
-  }finally{ hide('loading');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save'} }
-}
+        .sidebar-header {
+            padding: 24px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .15)
+        }
 
-async function deleteUser(id){
-  if(!confirm('Delete this user? This action cannot be undone.')) return;
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    console.log('Deleting user:',id);
-    const res=await fetch(`${API}/api/admin/users/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to delete user');
-    }
-    const result=await res.json();
-    console.log('User deleted:',result);
-    alert('User deleted successfully!');
-    await loadEmployees();
-  }catch(e){
-    console.error('Delete user error:',e);
-    alert(e.message||'Failed to delete user','danger');
-  }finally{ hide('loading') }
-}
+        .sidebar-header img {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 12px;
+            border-radius: 8px;
+            object-fit: contain;
+            background: #fff;
+            padding: 4px
+        }
 
-async function deleteClient(id){
-  if(!confirm('Delete this client? All associated data will be removed. This action cannot be undone.')) return;
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    console.log('Deleting client:',id);
-    const res=await fetch(`${API}/api/clients/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to delete client');
-    }
-    const result=await res.json();
-    console.log('Client deleted:',result);
-    alert('Client deleted successfully!');
-    await loadClients();
-    await loadWorkload();
-  }catch(e){
-    console.error('Delete client error:',e);
-    alert(e.message||'Failed to delete client','danger');
-  }finally{ hide('loading') }
-}
+        .sidebar-header h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            line-height: 1.3
+        }
 
-window.switchTab=switchTab;
-window.showModal=showModal;
-window.closeModal=closeModal;
-window.loadEmployees=loadEmployees;
-window.loadClients=loadClients;
-window.deleteUser=deleteUser;
-window.deleteClient=deleteClient;
+        .sidebar-header .role {
+            font-size: 11px;
+            color: rgba(255, 255, 255, .7);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
 
-async function assignRoundRobin(){
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    console.log('Starting round-robin assignment');
-    const res=await fetch(`${API}/api/clients/assign-round-robin`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({reason:'round_robin'})});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to assign');
-    }
-    const d=await res.json();
-    console.log('Round-robin result:',d);
-    alert('Round robin assignment completed!');
-    const resDiv=document.getElementById('assignmentResult');
-    if(d.summary){
-      resDiv.style.display='block';
-      const summary=Object.keys(d.summary).map(id=>{
-        const emp=allEmployees.find(e=>e.id===id);
-        return emp?`${emp.name}: ${d.summary[id]} clients`:'';
-      }).filter(Boolean).join(', ');
-      resDiv.innerHTML=`<p><strong>Assignment Summary:</strong> ${summary}</p>`;
-    }
-    await loadClients();
-    await loadWorkload();
-  }catch(e){
-    console.error('Round-robin error:',e);
-    alert(e.message||'Failed to assign','danger');
-  }finally{hide('loading')}
-}
+        .sidebar-nav {
+            padding: 16px 0
+        }
 
-function renderWorkload(items){
-  const b=document.getElementById('workloadBody');
-  if(!items||!items.length){
-    b.innerHTML='<tr><td colspan="3" class="empty-state"><i class="fas fa-inbox"></i><p>No data</p></td></tr>';
-    return;
-  }
-  b.innerHTML=items.map(i=>`<tr>
-    <td><strong>${i.name}</strong></td>
-    <td>${i.assigned_clients}</td>
-    <td>${i.postings_today}</td>
-  </tr>`).join('');
-}
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, .85);
+            text-decoration: none;
+            transition: all .2s;
+            position: relative;
+            font-size: 14px
+        }
 
-async function loadWorkload(){
-  try{
-    const token=localStorage.getItem('token');
-    console.log('Fetching workload from:',`${API}/api/manager/workload-distribution`);
-    const res=await fetch(`${API}/api/manager/workload-distribution`,{headers:{Authorization:`Bearer ${token}`}});
-    console.log('Workload response:',res.status,res.statusText);
-    if(!res.ok){
-      const err=await res.text();
-      console.error('Workload API error:',err);
-      throw new Error(`API error ${res.status}`);
-    }
-    const d=await res.json();
-    console.log('Workload data:',d);
-    renderWorkload(d.data||[]);
-  }catch(e){
-    console.error('Load workload error:',e);
-    document.getElementById('workloadBody').innerHTML=`<tr><td colspan="3" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading</p></td></tr>`;
-  }
-}
+        .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, .1);
+            color: #fff
+        }
 
-async function bulkAddClients(f){
-  const csvFile=f.get('csv');
-  const count=parseInt(f.get('count'));
-  const autoAssign=f.get('auto_assign')==='yes';
-  
-  // CSV upload
-  if(csvFile && csvFile.size > 0){
-    const btn=event.target.querySelector('button[type="submit"]');
-    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Uploading...'}
-    try{
-      show('loading');
-      const token=localStorage.getItem('token');
-      const formData=new FormData();
-      formData.append('file', csvFile);
-      console.log('Uploading CSV file...');
-      const res=await fetch(`${API}/api/clients/bulk-import-csv`,{method:'POST',headers:{Authorization:`Bearer ${token}`},body:formData});
-      if(!res.ok){
-        const err=await res.json().catch(()=>({}));
-        throw new Error(err.error?.message||err.detail||'Failed to import CSV');
-      }
-      const result=await res.json();
-      console.log('CSV import result:',result);
-      alert(`Successfully imported ${result.count} clients from CSV!`);
-      closeModal();
-      await loadClients();
-      await loadWorkload();
-    }catch(e){
-      console.error('CSV import error:',e);
-      alert(e.message||'Failed to import CSV','danger');
-    }finally{hide('loading');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save'}}
-    return;
-  }
-  
-  // Random generation
-  if(!count||count<1||count>500){
-    alert('Please enter a valid number (1-500) or upload a CSV file','danger');
-    return;
-  }
-  const btn=event.target.querySelector('button[type="submit"]');
-  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Creating...'}
-  try{
-    show('loading');
-    const token=localStorage.getItem('token');
-    console.log(`Creating ${count} clients...`);
-    alert(`Creating ${count} clients...`,'success');
-    const res=await fetch(`${API}/api/clients/bulk-create`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({count:count})});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Failed to create clients');
-    }
-    const result=await res.json();
-    console.log('Bulk create result:',result);
-    alert(`Successfully created ${result.count} clients!`);
-    if(autoAssign){
-      console.log('Auto-assigning clients...');
-      alert('Auto-assigning clients to employees...','success');
-      const assignRes=await fetch(`${API}/api/clients/assign-round-robin`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({reason:'bulk_creation'}});
-      if(assignRes.ok){
-        const assignResult=await assignRes.json();
-        console.log('Assignment result:',assignResult);
-        const summary=assignResult.summary||{};
-        const empNames=Object.keys(summary).map(id=>{
-          const emp=allEmployees.find(e=>e.id===id);
-          return emp?`${emp.name}: ${summary[id]} clients`:'';
-        }).filter(Boolean).join(', ');
-        alert(`Clients assigned equally! ${empNames}`);
-      }
-    }
-    closeModal();
-    await loadClients();
-    await loadWorkload();
-  }catch(e){
-    console.error('Bulk create error:',e);
-    alert(e.message||'Failed to create clients','danger');
-  }finally{hide('loading');if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save'}}
-}
+        .sidebar-nav a.active {
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+            font-weight: 600
+        }
 
-window.bulkAddClients=bulkAddClients;
-window.assignRoundRobin=assignRoundRobin;
-window.loadWorkload=loadWorkload;
-document.addEventListener('DOMContentLoaded',async()=>{ if(await auth()){ await loadEmployees(); await loadClients(); await loadWorkload(); } });
-</script>
-<script src="/debug_panel/debug.js"></script>
+        .sidebar-nav a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #a78bfa
+        }
+
+        .sidebar-nav a i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, .1);
+            margin: 12px 20px
+        }
+
+        .content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 24px;
+            width: calc(100% - 260px)
+        }
+
+        .header {
+            background: #fff;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .header h2 {
+            font-size: 26px;
+            color: #1e293b;
+            font-weight: 700;
+            margin: 0
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+            margin-bottom: 20px;
+            overflow: hidden
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafbfc
+        }
+
+        .card-header h5 {
+            font-size: 18px;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 700
+        }
+
+        .card-body {
+            padding: 24px
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .08)
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all .2s
+        }
+
+        .tab.active {
+            background: #6366f1;
+            color: #fff
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        thead {
+            background: #f8fafc
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155
+        }
+
+        tbody tr {
+            transition: background .15s
+        }
+
+        tbody tr:hover {
+            background: #f8fafc
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff
+        }
+
+        .btn-success:hover {
+            background: #059669
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .btn-danger:hover {
+            background: #dc2626
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 13px
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(2px)
+        }
+
+        .loading.show {
+            display: flex
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, .2);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin .8s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: .4
+        }
+
+        .alert {
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            animation: slideIn .3s
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: #1e293b
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b
+        }
+
+        .form-group {
+            margin-bottom: 16px
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 14px
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: 0;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, .1)
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="/static/images/logo.png" alt="Competence Consulting E-commerce LLP" class="brand-logo">
+                <h4 class="brand-name">Competence Consulting E-commerce LLP</h4>
+                <div class="role">Manager Portal</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/manager_dashboard_page/code.html"><i class="fas fa-chart-line"></i>Dashboard</a>
+                <a href="/management_page/code.html" class="active"><i class="fas fa-users"></i>Team Management</a>
+                <a href="/notifications_page/code.html"><i class="fas fa-bell"></i>Notifications</a>
+                <a href="/reports_page/code.html"><i class="fas fa-file-alt"></i>Reports</a>
+                <div class="nav-divider"></div>
+                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <div class="header">
+                <h2>Team Management</h2>
+                <div style="display:flex;gap:12px">
+                    <button class="btn btn-success" onclick="showModal('employee')"><i class="fas fa-user-plus"></i>Add
+                        Employee</button>
+                    <button class="btn btn-primary" onclick="showModal('client')"><i class="fas fa-briefcase"></i>Add
+                        Client</button>
+                    <button class="btn btn-primary" onclick="showModal('bulk')"><i class="fas fa-layer-group"></i>Bulk
+                        Add Clients</button>
+                </div>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('employees')">Employees</button>
+                <button class="tab" onclick="switchTab('clients')">Clients</button>
+            </div>
+
+            <div class="card" id="employeesTab">
+                <div class="card-header">
+                    <h5><i class="fas fa-users"></i> Team Members</h5>
+                    <button class="btn btn-sm btn-primary" onclick="loadEmployees()"><i class="fas fa-sync"></i>
+                        Refresh</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesBody">
+                                <tr>
+                                    <td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="clientsTab" style="display:none">
+                <div class="card-header">
+                    <h5><i class="fas fa-briefcase"></i> All Clients</h5>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <button class="btn btn-sm btn-primary" onclick="loadClients()"><i class="fas fa-sync"></i>
+                            Refresh</button>
+                        <button class="btn btn-sm btn-success" onclick="assignRoundRobin()"><i
+                                class="fas fa-random"></i> Assign Round Robin</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Client Name</th>
+                                    <th>Contact</th>
+                                    <th>Last Contact</th>
+                                    <th>Days</th>
+                                    <th>Assigned To</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientsBody">
+                                <tr>
+                                    <td colspan="7" class="empty-state"><i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="assignmentResult" class="empty-state" style="display:none"></div>
+                </div>
+            </div>
+
+            <div class="card" id="workloadCard" style="margin-top:16px">
+                <div class="card-header">
+                    <h5><i class="fas fa-balance-scale"></i> Workload Distribution</h5>
+                    <button class="btn btn-sm btn-primary" onclick="loadWorkload()"><i class="fas fa-sync"></i>
+                        Refresh</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Assigned Clients</th>
+                                    <th>Postings Today</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workloadBody">
+                                <tr>
+                                    <td colspan="3" class="empty-state"><i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Add Employee/Client/Bulk -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="modalForm">
+                <div id="formFields"></div>
+                <div style="display:flex;gap:12px;margin-top:20px">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/branding.js"></script>
+    <script>
+        const API = window.location.origin;
+        const show = id => document.getElementById(id).classList.add('show');
+        const hide = id => document.getElementById(id).classList.remove('show');
+        const alert = (m, t = 'success') => {
+            const c = document.getElementById('alertContainer');
+            const a = document.createElement('div');
+            a.className = `alert alert-${t}`;
+            a.innerHTML = `<i class="fas fa-${t === 'danger' ? 'times' : 'check'}-circle"></i>${m}`;
+            c.appendChild(a);
+            setTimeout(() => a.remove(), 5000);
+        };
+
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.href = '../login_page/code.html';
+        }
+
+        async function auth() {
+            try {
+                const u = sessionStorage.getItem('currentUser');
+                if (!u) {
+                    location.href = '../login_page/code.html';
+                    return null;
+                }
+                const d = JSON.parse(u);
+                if (d.role !== 'manager' && d.role !== 'admin') {
+                    location.href = '../employee_dashboard_page/code.html';
+                    return null;
+                }
+                return d;
+            } catch (e) {
+                location.href = '../login_page/code.html';
+                return null;
+            }
+        }
+
+        function switchTab(t) {
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if (t === 'employees') {
+                document.getElementById('employeesTab').style.display = 'block';
+                document.getElementById('clientsTab').style.display = 'none';
+            } else {
+                document.getElementById('employeesTab').style.display = 'none';
+                document.getElementById('clientsTab').style.display = 'block';
+                // Load clients when switching to clients tab
+                loadClients();
+            }
+        }
+
+        function showModal(t) {
+            document.getElementById('modalTitle').textContent = t === 'employee' ? 'Add Employee' : t === 'bulk' ? 'Bulk Add Clients' : 'Add Client';
+            const f = document.getElementById('formFields');
+
+            if (t === 'employee') {
+                f.innerHTML = `
+          <div class="form-group"><label>Name *</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
+          <div class="form-group"><label>Password *</label><input type="password" name="password" required></div>
+        `;
+            } else if (t === 'bulk') {
+                f.innerHTML = `
+          <div class="form-group"><label>Upload CSV File</label><input type="file" name="csv" accept=".csv" id="csvFile"></div>
+          <p style="color:#64748b;font-size:12px;margin-bottom:16px"><i class="fas fa-info-circle"></i> CSV format: name,member_id,city,products_posted,expiry_date,email,phone</p>
+          <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px">
+            <p style="font-weight:600;margin-bottom:12px">OR Generate Random Clients:</p>
+            <div class="form-group"><label>Number of Clients</label><input type="number" name="count" min="1" max="500" value="140"></div>
+            <div class="form-group">
+              <label>Auto-assign to employees?</label>
+              <select name="auto_assign">
+                <option value="yes">Yes - Equal distribution</option>
+                <option value="no">No - Manual later</option>
+              </select>
+            </div>
+            <p style="color:#64748b;font-size:12px"><i class="fas fa-info-circle"></i> Clients will be named Client 1, Client 2, etc.</p>
+          </div>
+        `;
+            } else {
+                f.innerHTML = `
+          <div class="form-group"><label>Client Name *</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Member ID</label><input type="text" name="member_id" placeholder="MEM001"></div>
+          <div class="form-group"><label>City</label><input type="text" name="city" placeholder="Mumbai"></div>
+          <div class="form-group"><label>Products Posted</label><input type="number" name="products_posted" min="0" value="0"></div>
+          <div class="form-group"><label>Expiry Date (Optional)</label><input type="text" name="expiry_date" placeholder="YYYY-MM-DD (e.g., 2026-03-15)"></div>
+          <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+          <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
+        `;
+            }
+
+            document.getElementById('modal').classList.add('show');
+            document.getElementById('modalForm').onsubmit = e => {
+                e.preventDefault();
+                if (t === 'employee') addEmployee(new FormData(e.target));
+                else if (t === 'bulk') bulkAddClients(new FormData(e.target));
+                else addClient(new FormData(e.target));
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function renderEmployees(u) {
+            const b = document.getElementById('employeesBody');
+            if (!u || !u.length) {
+                b.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-inbox"></i><p>No employees found. Click "Add Employee" to create one.</p></td></tr>';
+                return;
+            }
+            b.innerHTML = u.map(i => `<tr>
+        <td><strong>${i.name}</strong></td>
+        <td>${i.email}</td>
+        <td><span class="badge badge-${i.role === 'admin' ? 'danger' : i.role === 'manager' ? 'warning' : 'success'}">${i.role}</span></td>
+        <td><span class="badge badge-success">Active</span></td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${i.id}')"><i class="fas fa-trash"></i> Delete</button></td>
+      </tr>`).join('');
+        }
+
+        let allEmployees = [];
+        const days = d => { if (!d) return 999; return Math.ceil((new Date() - new Date(d)) / 864e5) };
+
+        function renderClients(c) {
+            const b = document.getElementById('clientsBody');
+            if (!c || !c.length) {
+                b.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>No clients found. Click "Add Client" to create one.</p></td></tr>';
+                return;
+            }
+            const sorted = c.sort((a, b) => days(b.last_contact_date) - days(a.last_contact_date));
+            b.innerHTML = sorted.map(i => {
+                const d = days(i.last_contact_date);
+                const color = d <= 7 ? '#10b981' : d <= 14 ? '#f59e0b' : '#ef4444';
+                const label = d <= 7 ? 'Good' : d <= 14 ? 'Due Soon' : 'Overdue';
+                return `<tr>
+          <td><strong>${i.name || 'Unknown'}</strong><br><small>${i.member_id || ''} | ${i.city || ''}</small></td>
+          <td>${i.contact_email || 'N/A'}<br><small>Products: ${i.products_posted || 0} | Exp: ${i.expiry_date || 'N/A'}</small></td>
+          <td>${i.last_contact_date || 'Never'}</td>
+          <td><span style="font-weight:600;color:${color}">${d === 999 ? '∞' : d}</span></td>
+          <td><select class="assign-select" data-client-id="${i.id}" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px">
+            <option value="">Unassigned</option>
+            ${allEmployees.map(e => `<option value="${e.id}" ${i.assigned_employee_id === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
+          </select></td>
+          <td><span class="badge badge-${d <= 7 ? 'success' : d <= 14 ? 'warning' : 'danger'}">${label}</span></td>
+          <td><button class="btn btn-sm btn-danger" onclick="deleteClient('${i.id}')"><i class="fas fa-trash"></i> Delete</button></td>
+        </tr>`;
+            }).join('');
+
+            document.querySelectorAll('.assign-select').forEach(sel => {
+                sel.addEventListener('change', async (e) => {
+                    const clientId = e.target.dataset.clientId;
+                    const employeeId = e.target.value;
+                    if (!employeeId) return;
+                    try {
+                        show('loading');
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`${API}/api/clients/${clientId}/assign`, {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ employee_id: employeeId })
+                        });
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(err.error?.message || 'Failed to assign');
+                        }
+                        alert('Client assigned successfully!');
+                        await loadWorkload();
+                    } catch (err) {
+                        console.error('Assign error:', err);
+                        alert(err.message || 'Failed to assign client', 'danger');
+                        e.target.value = '';
+                    } finally {
+                        hide('loading');
+                    }
+                });
+            });
+        }
+
+        // CRITICAL FIX: Always call render functions even when data is empty
+        async function loadEmployees() {
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                if (!token) throw new Error('No auth token');
+
+                const res = await fetch(`${API}/api/users`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    throw new Error(`API error ${res.status}: ${err}`);
+                }
+
+                const d = await res.json();
+                allEmployees = (d.data || []).filter(u => u.role === 'employee');
+
+                // CRITICAL FIX: Always render, even with empty data
+                renderEmployees(d.data || []);
+            } catch (e) {
+                console.error('Load employees error:', e);
+                document.getElementById('employeesBody').innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></td></tr>`;
+                alert(e.message || 'Failed to load employees', 'danger');
+            } finally {
+                hide('loading');
+            }
+        }
+
+        // CRITICAL FIX: Always call render functions even when data is empty
+        async function loadClients() {
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                if (!token) throw new Error('No auth token');
+
+                const res = await fetch(`${API}/api/clients`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    throw new Error(`API error ${res.status}: ${err}`);
+                }
+
+                const d = await res.json();
+
+                // CRITICAL FIX: Always render, even with empty data
+                renderClients(d.data || []);
+            } catch (e) {
+                console.error('Load clients error:', e);
+                document.getElementById('clientsBody').innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></td></tr>`;
+                alert(e.message || 'Failed to load clients', 'danger');
+            } finally {
+                hide('loading');
+            }
+        }
+
+        async function addEmployee(f) {
+            const btn = event.target.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                const payload = { name: f.get('name'), email: f.get('email'), password: f.get('password') };
+
+                const res = await fetch(`${API}/api/employees`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || 'Failed to add employee');
+                }
+
+                alert('Employee added successfully!');
+                closeModal();
+                await loadEmployees();
+            } catch (e) {
+                console.error('Add employee error:', e);
+                alert(e.message || 'Failed to add employee', 'danger');
+            } finally {
+                hide('loading');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                }
+            }
+        }
+
+        async function addClient(f) {
+            const btn = event.target.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                const payload = {
+                    name: f.get('name'),
+                    member_id: f.get('member_id'),
+                    city: f.get('city'),
+                    products_posted: parseInt(f.get('products_posted')) || 0,
+                    expiry_date: f.get('expiry_date'),
+                    email: f.get('email'),
+                    phone: f.get('phone')
+                };
+
+                const res = await fetch(`${API}/api/clients`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || 'Failed to add client');
+                }
+
+                alert('Client added successfully!');
+                closeModal();
+                await loadClients();
+            } catch (e) {
+                console.error('Add client error:', e);
+                alert(e.message || 'Failed to add client', 'danger');
+            } finally {
+                hide('loading');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                }
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Delete this user? This action cannot be undone.')) return;
+
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API}/api/admin/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || 'Failed to delete user');
+                }
+
+                alert('User deleted successfully!');
+                await loadEmployees();
+            } catch (e) {
+                console.error('Delete user error:', e);
+                alert(e.message || 'Failed to delete user', 'danger');
+            } finally {
+                hide('loading');
+            }
+        }
+
+        async function deleteClient(id) {
+            if (!confirm('Delete this client? All associated data will be removed. This action cannot be undone.')) return;
+
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API}/api/clients/${id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || 'Failed to delete client');
+                }
+
+                alert('Client deleted successfully!');
+                await loadClients();
+                await loadWorkload();
+            } catch (e) {
+                console.error('Delete client error:', e);
+                alert(e.message || 'Failed to delete client', 'danger');
+            } finally {
+                hide('loading');
+            }
+        }
+
+        async function assignRoundRobin() {
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API}/api/clients/assign-round-robin`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: 'round_robin' })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || 'Failed to assign');
+                }
+
+                const d = await res.json();
+                alert('Round robin assignment completed!');
+
+                const resDiv = document.getElementById('assignmentResult');
+                if (d.summary) {
+                    resDiv.style.display = 'block';
+                    const summary = Object.keys(d.summary).map(id => {
+                        const emp = allEmployees.find(e => e.id === id);
+                        return emp ? `${emp.name}: ${d.summary[id]} clients` : '';
+                    }).filter(Boolean).join(', ');
+                    resDiv.innerHTML = `<p><strong>Assignment Summary:</strong> ${summary}</p>`;
+                }
+
+                await loadClients();
+                await loadWorkload();
+            } catch (e) {
+                console.error('Round-robin error:', e);
+                alert(e.message || 'Failed to assign', 'danger');
+            } finally {
+                hide('loading');
+            }
+        }
+
+        function renderWorkload(items) {
+            const b = document.getElementById('workloadBody');
+            if (!items || !items.length) {
+                b.innerHTML = '<tr><td colspan="3" class="empty-state"><i class="fas fa-inbox"></i><p>No workload data</p></td></tr>';
+                return;
+            }
+            b.innerHTML = items.map(i => `<tr>
+        <td><strong>${i.name}</strong></td>
+        <td>${i.assigned_clients}</td>
+        <td>${i.postings_today}</td>
+      </tr>`).join('');
+        }
+
+        // CRITICAL FIX: Always call render functions even when data is empty
+        async function loadWorkload() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API}/api/manager/workload-distribution`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    throw new Error(`API error ${res.status}`);
+                }
+
+                const d = await res.json();
+
+                // CRITICAL FIX: Always render, even with empty data
+                renderWorkload(d.data || []);
+            } catch (e) {
+                console.error('Load workload error:', e);
+                document.getElementById('workloadBody').innerHTML = `<tr><td colspan="3" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading</p></td></tr>`;
+            }
+        }
+
+        async function bulkAddClients(f) {
+            const csvFile = f.get('csv');
+            const count = parseInt(f.get('count'));
+            const autoAssign = f.get('auto_assign') === 'yes';
+
+            // CSV upload
+            if (csvFile && csvFile.size > 0) {
+                const btn = event.target.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                }
+
+                try {
+                    show('loading');
+                    const token = localStorage.getItem('token');
+                    const formData = new FormData();
+                    formData.append('file', csvFile);
+
+                    const res = await fetch(`${API}/api/clients/bulk-import-csv`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.error?.message || err.detail || 'Failed to import CSV');
+                    }
+
+                    const result = await res.json();
+                    alert(`Successfully imported ${result.count} clients from CSV!`);
+                    closeModal();
+                    await loadClients();
+                    await loadWorkload();
+                } catch (e) {
+                    console.error('CSV import error:', e);
+                    alert(e.message || 'Failed to import CSV', 'danger');
+                } finally {
+                    hide('loading');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                    }
+                }
+                return;
+            }
+
+            // Random generation
+            if (!count || count < 1 || count > 500) {
+                alert('Please enter a valid number (1-500) or upload a CSV file', 'danger');
+                return;
+            }
+
+            const btn = event.target.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            }
+
+            try {
+                show('loading');
+                const token = localStorage.getItem('token');
+                alert(`Creating ${count} clients...`, 'success');
+
+                const res = await fetch(`${API}/api/clients/bulk-create`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: count })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || 'Failed to create clients');
+                }
+
+                const result = await res.json();
+                alert(`Successfully created ${result.count} clients!`);
+
+                if (autoAssign) {
+                    alert('Auto-assigning clients to employees...', 'success');
+                    const assignRes = await fetch(`${API}/api/clients/assign-round-robin`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reason: 'bulk_creation' })
+                    });
+
+                    if (assignRes.ok) {
+                        const assignResult = await assignRes.json();
+                        const summary = assignResult.summary || {};
+                        const empNames = Object.keys(summary).map(id => {
+                            const emp = allEmployees.find(e => e.id === id);
+                            return emp ? `${emp.name}: ${summary[id]} clients` : '';
+                        }).filter(Boolean).join(', ');
+                        alert(`Clients assigned equally! ${empNames}`);
+                    }
+                }
+
+                closeModal();
+                await loadClients();
+                await loadWorkload();
+            } catch (e) {
+                console.error('Bulk create error:', e);
+                alert(e.message || 'Failed to create clients', 'danger');
+            } finally {
+                hide('loading');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                }
+            }
+        }
+
+        // Make functions globally accessible for onclick handlers  
+        window.deleteUser = deleteUser;
+        window.deleteClient = deleteClient;
+        window.showModal = showModal;
+        window.closeModal = closeModal;
+        window.switchTab = switchTab;
+        window.loadEmployees = loadEmployees;
+        window.loadClients = loadClients;
+        window.assignRoundRobin = assignRoundRobin;
+        window.loadWorkload = loadWorkload;
+        window.bulkAddClients = bulkAddClients;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (await auth()) {
+                await loadEmployees();
+                await loadClients();
+                await loadWorkload();
+            }
+        });
+    </script>
+    <script src="/debug_panel/debug.js"></script>
 </body>
+
 </html>

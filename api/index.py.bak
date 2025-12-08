@@ -49,9 +49,7 @@ except:
 def health_check():
     return {"status": "healthy", "service": "Competence CRM API"}
 
-@app.get("/")
-def root():
-    return FileResponse("login_page/code.html")
+
 
 
 
@@ -108,6 +106,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # Supabase Configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
 # JWT secret: require env in production, generate ephemeral in dev if missing
 APP_ENV = os.getenv("APP_ENV", "development").lower()
@@ -118,107 +117,23 @@ if not JWT_SECRET:
     # Ephemeral dev secret (tokens invalidated on restart)
     JWT_SECRET = secrets.token_urlsafe(32)
 
-USE_DEMO = str(os.getenv("USE_DEMO", "1")).lower() in ("1", "true", "yes")
-# Initialize Supabase client (disabled if USE_DEMO)
+# Initialize Supabase client
 try:
-    supabase: Client = None if USE_DEMO else (create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None)
+    # Prefer service role key for full database access (bypasses RLS)
+    key_to_use = SUPABASE_SERVICE_ROLE_KEY if SUPABASE_SERVICE_ROLE_KEY else SUPABASE_KEY
+    supabase: Client = create_client(SUPABASE_URL, key_to_use) if SUPABASE_URL and key_to_use else None
     if supabase:
         # Test connection
         supabase.table("users").select("id").limit(1).execute()
-        logger.info("Supabase connected successfully")
+        logger.info(f"Supabase connected successfully (using {'service role' if SUPABASE_SERVICE_ROLE_KEY else 'anon'} key)")
     else:
-        logger.info("Demo mode active (Supabase disabled or not configured)")
+        logger.error("Supabase not configured. Application will not function correctly.")
 except Exception as e:
     logger.error(f"Supabase connection failed: {e}")
     supabase = None
-DEMO_ACTIVITY_LOGS = []
-DEMO_DAILY_REPORTS = []
-DEMO_DAILY_REPORT_DRAFTS = {}
-# Initialize demo clients with explicit assignments to John Doe (demo-employee-1)
-DEMO_CLIENTS = [
-    {
-        "id": "demo-client-1", 
-        "name": "ABC Corporation", 
-        "member_id": "ABC001", 
-        "city": "New York", 
-        "products_posted": 5, 
-        "expiry_date": "2024-12-31", 
-        "contact_email": "contact@abc.com", 
-        "email": "contact@abc.com", 
-        "phone": "555-0101", 
-        "assigned_employee_id": "demo-employee-1",
-        "last_contact_date": (datetime.utcnow() - timedelta(days=4)).isoformat()
-    },
-    {
-        "id": "demo-client-2", 
-        "name": "XYZ Industries", 
-        "member_id": "XYZ002", 
-        "city": "Los Angeles", 
-        "products_posted": 3, 
-        "expiry_date": "2024-11-30", 
-        "contact_email": "info@xyz.com", 
-        "email": "info@xyz.com", 
-        "phone": "555-0102", 
-        "assigned_employee_id": "demo-employee-1",
-        "last_contact_date": (datetime.utcnow() - timedelta(days=11)).isoformat()
-    },
-    {
-        "id": "demo-client-3", 
-        "name": "Global Services", 
-        "member_id": "GLO003", 
-        "city": "Chicago", 
-        "products_posted": 8, 
-        "expiry_date": "2025-01-15", 
-        "contact_email": "hello@global.com", 
-        "email": "hello@global.com", 
-        "phone": "555-0103", 
-        "assigned_employee_id": "demo-employee-1",
-        "last_contact_date": (datetime.utcnow() - timedelta(days=21)).isoformat()
-    }
-]
-
-# Demo users for development mode when Supabase is not configured
-DEMO_USERS = {
-    "john@crm.com": {
-        "id": "demo-employee-1",
-        "name": "John Doe",
-        "email": "john@crm.com",
-        "role": "employee",
-        "password": "password123",
-        "password_hash": "$2b$12$LyFo6ban81LS4BYWUu0f3ei8uaK.HQwsqh1rzcBLv8BJMzExnLzeK"  # password123
-    },
-    "manager@crm.com": {
-        "id": "demo-manager-1",
-        "name": "Jane Smith",
-        "email": "manager@crm.com",
-        "role": "manager",
-        "password": "password123",
-        "password_hash": "$2b$12$LyFo6ban81LS4BYWUu0f3ei8uaK.HQwsqh1rzcBLv8BJMzExnLzeK"  # password123
-    }
-}
-
-# Demo data validation and logging
-def _validate_demo_data():
-    try:
-        print(f"DEMO MODE: Validating demo data...")
-        print(f"DEMO_USERS: {len(DEMO_USERS)} users")
-        for email, user in DEMO_USERS.items():
-            print(f"  - {email}: {user['name']} ({user['role']}) ID: {user['id']}")
-        
-        print(f"DEMO_CLIENTS: {len(DEMO_CLIENTS)} clients")
-        for client in DEMO_CLIENTS:
-            print(f"  - {client['name']}: assigned to {client.get('assigned_employee_id', 'UNASSIGNED')}")
-        
-        # Verify John Doe has clients assigned
-        john_clients = [c for c in DEMO_CLIENTS if c.get('assigned_employee_id') == 'demo-employee-1']
-        print(f"John Doe (demo-employee-1) has {len(john_clients)} clients assigned")
-        
-    except Exception as e:
-        print(f"Demo data validation error: {e}")
 
 if not supabase:
-    print("Running in DEMO MODE - no Supabase connection")
-    _validate_demo_data()
+    logger.critical("CRITICAL: Supabase connection failed. API will return errors.")
 
 # Models
 class LoginRequest(BaseModel):
@@ -354,45 +269,12 @@ def login(req: LoginRequest, request: Request):
     ip = request.client.host if request.client else "unknown"
     _check_login_rate_limit(ip)
     
-    # Demo mode - use hardcoded users when Supabase is not configured
-    if not supabase:
-        logger.info(f"Demo mode login attempt for: {req.email}")
-        demo_user = DEMO_USERS.get(req.email)
-        
-        if not demo_user:
-            _failed_login_events.append(time.time())
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-        
-        # Verify password
-        if not verify_password(req.password, demo_user["password_hash"]):
-            _failed_login_events.append(time.time())
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-        
-        logger.info(f"Demo login successful: {demo_user['name']} ({demo_user['role']})")
-        token = create_token(demo_user["id"], demo_user["role"])
-        return {
-            "access_token": token,
-            "token_type": "bearer",
-            "user": {"id": demo_user["id"], "name": demo_user["name"], "email": demo_user["email"], "role": demo_user["role"]}
-        }
-    
     # Production mode - use Supabase
     try:
         result = supabase.table("users").select("*").eq("email", req.email).execute()
         logger.info(f"Login attempt for {req.email}: Found {len(result.data or [])} users")
 
         if not result.data:
-            # Dev/test fallback to demo users even when Supabase is configured
-            if APP_ENV in ("development", "test") and req.email in DEMO_USERS:
-                demo_user = DEMO_USERS[req.email]
-                if verify_password(req.password, demo_user["password_hash"]):
-                    logger.info(f"Dev fallback login successful: {demo_user['name']} ({demo_user['role']})")
-                    token = create_token(demo_user["id"], demo_user["role"]) 
-                    return {
-                        "access_token": token,
-                        "token_type": "bearer",
-                        "user": {"id": demo_user["id"], "name": demo_user["name"], "email": demo_user["email"], "role": demo_user["role"]}
-                    }
             _failed_login_events.append(time.time())
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
@@ -425,15 +307,6 @@ def refresh_token(payload = Depends(verify_token)):
 
 @app.get("/api/auth/me")
 def get_me(payload = Depends(verify_token)):
-    # Demo mode - return hardcoded user data
-    if not supabase:
-        user_id = payload["sub"]
-        # Find user by ID in demo users
-        for demo_user in DEMO_USERS.values():
-            if demo_user["id"] == user_id:
-                return {"id": demo_user["id"], "name": demo_user["name"], "email": demo_user["email"], "role": demo_user["role"]}
-        raise HTTPException(status_code=404, detail="User not found")
-    
     # Production mode - use Supabase
     result = supabase.table("users").select("id,name,email,role").eq("id", payload["sub"]).execute()
     if not result.data:
@@ -484,56 +357,6 @@ def change_password(pwd: PasswordChange, payload = Depends(verify_token)):
 
 @app.get("/api/clients")
 def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Query(None)):
-    if not supabase:
-        cache_key = f"{payload['role']}:{payload['sub']}:{employee_id or ''}"
-        now = time.time()
-        entry = CACHE["clients"].get(cache_key)
-        if entry and now - entry["time"] < CACHE_TTL_SECONDS:
-            return {"data": entry["data"], "total": len(entry["data"])}
-        
-        # Start with all demo clients
-        base = DEMO_CLIENTS[:]
-        
-        # Filter based on role and parameters
-        if payload["role"] == "employee":
-            # Employee can only see their assigned clients
-            base = [c for c in base if c.get("assigned_employee_id") == payload["sub"]]
-            print(f"DEBUG: Employee {payload['sub']} requesting clients, found {len(base)} assigned clients")
-            print(f"DEBUG: All clients: {[(c['name'], c.get('assigned_employee_id')) for c in DEMO_CLIENTS]}")
-        elif employee_id:
-            # Manager requesting specific employee's clients
-            base = [c for c in base if c.get("assigned_employee_id") == employee_id]
-            print(f"DEBUG: Manager requesting employee {employee_id} clients, found {len(base)} clients")
-        else:
-            # Manager requesting all clients
-            print(f"DEBUG: Manager requesting all clients, found {len(base)} clients")
-        
-        def classify(c: dict):
-            lcd = c.get("last_contact_date")
-            days = 999
-            if lcd:
-                try:
-                    if "Z" in lcd or "+" in lcd:
-                        dt = datetime.fromisoformat(lcd.replace("Z", "+00:00"))
-                        days = max(0, math.ceil((datetime.utcnow().replace(tzinfo=dt.tzinfo) - dt).total_seconds() / 86400))
-                    else:
-                        dt = datetime.fromisoformat(lcd)
-                        days = max(0, math.ceil((datetime.utcnow() - dt).total_seconds() / 86400))
-                except Exception as e:
-                    logger.warning(f"Date parse error for {c.get('name')}: {lcd} - {e}")
-                    days = 999
-            status = "good" if days <= 7 else ("due_soon" if days <= 14 else "overdue")
-            c2 = dict(c)
-            c2["days_since_last_contact"] = days
-            c2["status"] = status
-            c2["is_overdue"] = (status == "overdue")
-            return c2
-        
-        enriched = [classify(c) for c in base]
-        CACHE["clients"][cache_key] = {"data": enriched, "time": now}
-        print(f"DEBUG: Returning {len(enriched)} enriched clients for {payload['role']} {payload['sub']}")
-        return {"data": enriched, "total": len(enriched)}
-    
     # Production mode - use Supabase
     try:
         query = supabase.table("clients").select("*")
@@ -545,29 +368,39 @@ def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Q
         result = query.execute()
         items = result.data or []
         def classify(c: dict):
-            lcd = c.get("last_contact_date")
-            days = 999
-            if lcd:
+            expiry = c.get("expiry_date")
+            days = 9999
+            if expiry:
                 try:
-                    if isinstance(lcd, str):
-                        dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "+" in lcd or "Z" in lcd else datetime.fromisoformat(lcd)
+                    if isinstance(expiry, str):
+                        dt = datetime.fromisoformat(expiry.replace("Z", "+00:00")) if "+" in expiry or "Z" in expiry else datetime.fromisoformat(expiry)
                         dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
                     else:
-                        dt = lcd
+                        dt = expiry
                     now = datetime.utcnow()
-                    diff_seconds = (now - dt).total_seconds()
-                    days = max(0, int(diff_seconds / 86400))
-                    logger.info(f"Client {c.get('name')}: lcd={lcd}, dt={dt}, now={now}, diff_sec={diff_seconds}, days={days}")
+                    # Calculate days until expiry
+                    diff_seconds = (dt - now).total_seconds()
+                    days = math.ceil(diff_seconds / 86400)
                 except Exception as e:
-                    logger.warning(f"Date parse error for {c.get('name')}: {lcd} - {e}")
-                    days = 999
-            status = "good" if days <= 7 else ("due_soon" if days <= 14 else "overdue")
+                    logger.warning(f"Date parse error for {c.get('name')}: {expiry} - {e}")
+                    days = 9999
+            
+            status = "good"
+            if days < 0:
+                status = "overdue"
+            elif days <= 30:
+                status = "due_soon"
+            
             c2 = dict(c)
-            c2["days_since_last_contact"] = days
+            c2["days_until_expiry"] = days
             c2["status"] = status
             c2["is_overdue"] = (status == "overdue")
             return c2
+
         enriched = [classify(c) for c in items]
+        # Sort by days_until_expiry ascending (Overdue negative numbers first, then small positive, then large positive)
+        enriched.sort(key=lambda x: x["days_until_expiry"])
+        
         return {"data": enriched, "total": len(enriched)}
     except Exception as e:
         print(f"Error loading clients: {e}")
@@ -693,25 +526,7 @@ def activity_feed(
     offset: int = Query(0, ge=0)
 ):
     if not supabase:
-        items = DEMO_ACTIVITY_LOGS[:]
-        if category:
-            items = [x for x in items if x.get("category") == category]
-        if employee_id:
-            items = [x for x in items if x.get("employee_id") == employee_id]
-        elif payload["role"] == "employee":
-            items = [x for x in items if x.get("employee_id") == payload["sub"]]
-        if client_id:
-            items = [x for x in items if x.get("client_id") == client_id]
-        if date_from:
-            items = [x for x in items if x.get("created_at") and x.get("created_at") >= date_from]
-        if date_to:
-            items = [x for x in items if x.get("created_at") and x.get("created_at") <= date_to]
-        if search:
-            s = search.lower()
-            items = [x for x in items if (str(x.get("notes") or '').lower().find(s) >= 0) or (str(x.get("outcome") or '').lower().find(s) >= 0)]
-        total = len(items)
-        items = items[offset:offset+limit]
-        return {"data": items, "total": total, "limit": limit, "offset": offset}
+        raise HTTPException(status_code=503, detail="Database not configured")
 
     try:
         logger.info(f"ACTIVITY_FEED: Fetching for {payload['sub']} role={payload['role']}")
@@ -737,36 +552,7 @@ def activity_feed(
 @app.post("/api/daily-report")
 def submit_report(report: DailyReport, payload = Depends(verify_token)):
     if not supabase:
-        data = {
-            "id": f"demo-dmr-{int(time.time()*1000)}",
-            "employee_id": payload["sub"],
-            "date": datetime.utcnow().date().isoformat(),
-            "tasks": "",
-            "ta_calls": report.ta_calls or 0,
-            "ta_calls_to": report.ta_calls_to or "",
-            "renewal_calls": report.renewal_calls or 0,
-            "renewal_calls_to": report.renewal_calls_to or "",
-            "service_calls": report.service_calls or 0,
-            "service_calls_to": report.service_calls_to or "",
-            "zero_star_calls": report.zero_star_calls or 0,
-            "one_star_calls": report.one_star_calls or 0,
-            "additional_info": report.additional_info or "",
-            "metrics": {
-                "ta_calls": report.ta_calls or 0,
-                "ta_calls_to": report.ta_calls_to or "",
-                "renewal_calls": report.renewal_calls or 0,
-                "renewal_calls_to": report.renewal_calls_to or "",
-                "service_calls": report.service_calls or 0,
-                "service_calls_to": report.service_calls_to or "",
-                "zero_star_calls": report.zero_star_calls or 0,
-                "one_star_calls": report.one_star_calls or 0,
-                "additional_info": report.additional_info or ""
-            },
-            "created_at": datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
-        }
-        DEMO_DAILY_REPORTS.insert(0, data)
-        logger.info(f"Submitting daily report for {payload['sub']}")
-        return {"message": "Report submitted", "id": data["id"]}
+        raise HTTPException(status_code=503, detail="Database not configured")
     
     data = {
         "employee_id": payload["sub"],
@@ -855,26 +641,8 @@ def submit_report(report: DailyReport, payload = Depends(verify_token)):
 
 @app.get("/api/daily-reports")
 def get_reports(payload = Depends(verify_token), employee_id: Optional[str] = Query(None)):
-    def demo_reports():
-        items = DEMO_DAILY_REPORTS[:]
-        if payload["role"] == "employee":
-            items = [x for x in items if x.get("employee_id") == payload["sub"]]
-        elif employee_id:
-            items = [x for x in items if x.get("employee_id") == employee_id]
-        data = []
-        for r in items:
-            metrics = r.get("metrics", {})
-            data.append({
-                "id": r.get("id"),
-                "employee_id": r.get("employee_id"),
-                "employee_name": "Employee",
-                "metrics": metrics,
-                "date": r.get("date"),
-                "submitted_at": r.get("created_at")
-            })
-        return {"data": data, "total": len(data)}
     if not supabase:
-        return demo_reports()
+        raise HTTPException(status_code=503, detail="Database not configured")
     try:
         query = supabase.table("daily_reports").select("*")
         if payload["role"] == "employee":
@@ -905,7 +673,7 @@ def get_reports(payload = Depends(verify_token), employee_id: Optional[str] = Qu
         return {"data": data, "total": len(data)}
     except Exception as e:
         logger.error(f"Error loading daily reports: {e}")
-        return demo_reports()
+        return {"data": [], "total": 0}
 
 @app.post("/api/daily-report/draft")
 def save_report_draft(report: DailyReport, payload = Depends(verify_token)):
@@ -1043,43 +811,7 @@ def manager_stats(payload = Depends(verify_token)):
         raise HTTPException(status_code=403, detail="Permission denied")
     
     if not supabase:
-        try:
-            total = len(DEMO_CLIENTS)
-            cutoff = datetime.utcnow() - timedelta(days=14)
-            logger.info(f"MANAGER STATS DEMO: {total} total clients, cutoff: {cutoff}")
-            
-            overdue_count = 0
-            for c in DEMO_CLIENTS:
-                lcd = c.get("last_contact_date")
-                if not lcd:
-                    overdue_count += 1
-                    continue
-                try:
-                    if isinstance(lcd, str):
-                        dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "Z" in lcd else datetime.fromisoformat(lcd)
-                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
-                    else:
-                        dt = lcd
-                    if dt < cutoff:
-                        overdue_count += 1
-                except Exception as e:
-                    logger.warning(f"Date parse error in manager stats: {lcd} - {e}")
-                    overdue_count += 1
-            
-            employees_count = len([u for u in DEMO_USERS.values() if u.get("role") == "employee"])
-            efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
-            
-            result = {
-                "employees": employees_count, 
-                "clients": total, 
-                "overdue": overdue_count, 
-                "efficiency": efficiency
-            }
-            logger.info(f"Manager stats result: {result}")
-            return result
-        except Exception as e:
-            logger.error(f"Manager stats error: {e}")
-            return {"employees": 0, "clients": 0, "overdue": 0, "efficiency": 0}
+        raise HTTPException(status_code=503, detail="Database not configured")
     
     # Production mode - use Supabase
     try:
@@ -1088,18 +820,28 @@ def manager_stats(payload = Depends(verify_token)):
         emp_count = employees.count or 0
         logger.info(f"MANAGER_STATS: employees={emp_count}")
         
-        clients_res = supabase.table("clients").select("id,last_contact_date").execute()
+        clients_res = supabase.table("clients").select("id,expiry_date").execute()
         data = clients_res.data or []
         total = len(data)
-        logger.info(f"MANAGER_STATS: clients={total}")
         
-        cutoff = datetime.utcnow() - timedelta(days=14)
-        overdue_count = sum(1 for c in data if not c.get("last_contact_date") or 
-                           (lambda dt: dt and dt < cutoff)(datetime.fromisoformat(c["last_contact_date"].replace("Z", "+00:00")).replace(tzinfo=None) if isinstance(c.get("last_contact_date"), str) else c.get("last_contact_date")))
+        now = datetime.utcnow()
+        overdue_count = 0
+        for c in data:
+            expiry = c.get("expiry_date")
+            if expiry:
+                try:
+                    if isinstance(expiry, str):
+                        dt = datetime.fromisoformat(expiry.replace("Z", "+00:00")) if "+" in expiry or "Z" in expiry else datetime.fromisoformat(expiry)
+                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
+                    else:
+                        dt = expiry
+                    if dt < now:
+                        overdue_count += 1
+                except Exception:
+                    pass
         
         efficiency = round((total - overdue_count) / total * 100) if total > 0 else 0
         result = {"employees": emp_count, "clients": total, "overdue": overdue_count, "efficiency": efficiency}
-        logger.info(f"MANAGER_STATS: SUCCESS {result}")
         return result
     except Exception as e:
         logger.error(f"MANAGER_STATS: ERROR {type(e).__name__}: {e}")
@@ -1112,78 +854,9 @@ def employee_performance(payload = Depends(verify_token)):
     if payload["role"] not in ["manager", "admin"]:
         raise HTTPException(status_code=403, detail="Permission denied")
     logger.info(f"EMPLOYEE_PERF: Manager {payload['sub']} requesting data")
+    
     if not supabase:
-        try:
-            employees = [u for u in DEMO_USERS.values() if u.get("role") == "employee"]
-            logger.info(f"Employee performance: Found {len(employees)} employees")
-            
-            week_ago = datetime.utcnow() - timedelta(days=7)
-            overdue_date = datetime.utcnow() - timedelta(days=14)
-            
-            # Calculate assignments and overdue clients
-            assigned_map = {}
-            overdue_map = {}
-            for c in DEMO_CLIENTS:
-                emp_id = c.get("assigned_employee_id")
-                if not emp_id:
-                    continue
-                assigned_map[emp_id] = assigned_map.get(emp_id, 0) + 1
-                lcd = c.get("last_contact_date")
-                if not lcd:
-                    overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-                    continue
-                try:
-                    if isinstance(lcd, str):
-                        dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "Z" in lcd else datetime.fromisoformat(lcd)
-                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
-                    else:
-                        dt = lcd
-                    if dt < overdue_date:
-                        overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-                except Exception as e:
-                    logger.warning(f"Date parse error in employee performance: {lcd} - {e}")
-                    overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-            
-            # Calculate activities
-            activity_map = {}
-            for a in DEMO_ACTIVITY_LOGS:
-                try:
-                    ts = a.get("created_at")
-                    if isinstance(ts, str):
-                        dt = datetime.fromisoformat(ts.replace("Z", "+00:00")) if "Z" in ts else datetime.fromisoformat(ts)
-                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
-                    else:
-                        dt = ts
-                    if dt >= week_ago:
-                        emp_id = a.get("employee_id")
-                        if emp_id:
-                            activity_map[emp_id] = activity_map.get(emp_id, 0) + 1
-                except Exception:
-                    continue
-            
-            # Build response data
-            data = []
-            for e in employees:
-                assigned = assigned_map.get(e["id"], 0)
-                overdue_count = overdue_map.get(e["id"], 0)
-                efficiency = round((assigned - overdue_count) / assigned * 100) if assigned > 0 else 100
-                
-                emp_data = {
-                    "id": e["id"],
-                    "name": e.get("name", "Unknown"),
-                    "email": e.get("email", ""),
-                    "assigned_clients": assigned,
-                    "overdue_clients": overdue_count,
-                    "activities_this_week": activity_map.get(e["id"], 0),
-                    "efficiency": efficiency
-                }
-                data.append(emp_data)
-            
-            logger.info(f"Employee performance result: {len(data)} employees with data")
-            return {"data": data}
-        except Exception as e:
-            logger.error(f"Employee performance error: {e}")
-            return {"data": []}
+        raise HTTPException(status_code=503, detail="Database not configured")
     
     try:
         logger.info(f"EMPLOYEE_PERF: Fetching employees")
@@ -1192,38 +865,37 @@ def employee_performance(payload = Depends(verify_token)):
         logger.info(f"EMPLOYEE_PERF: Found {len(employees)} employees")
         emp_ids = [e["id"] for e in employees]
 
-        clients_res = supabase.table("clients").select("id,assigned_employee_id,last_contact_date").execute()
+        clients_res = supabase.table("clients").select("id,assigned_employee_id,expiry_date").execute()
         clients = clients_res.data or []
         logger.info(f"EMPLOYEE_PERF: Found {len(clients)} clients")
         week_ago = (datetime.utcnow() - timedelta(days=7))
-        overdue_date = (datetime.utcnow() - timedelta(days=14))
         activities_res = supabase.table("activity_logs").select("id,employee_id,created_at").gte("created_at", week_ago.isoformat()).execute()
         activities = activities_res.data or []
         logger.info(f"EMPLOYEE_PERF: Found {len(activities)} activities")
 
         assigned_map = {}
         overdue_map = {}
+        now = datetime.utcnow()
+
         for c in clients:
             emp_id = c.get("assigned_employee_id")
             if not emp_id:
                 continue
             assigned_map[emp_id] = assigned_map.get(emp_id, 0) + 1
-            lcd = c.get("last_contact_date")
-            if not lcd:
-                overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-                continue
-            try:
-                if isinstance(lcd, str):
-                    lcd_dt = datetime.fromisoformat(lcd.replace("Z", "+00:00")) if "+" in lcd or "Z" in lcd else datetime.fromisoformat(lcd)
-                    lcd_dt = lcd_dt.replace(tzinfo=None) if lcd_dt.tzinfo else lcd_dt
-                else:
-                    lcd_dt = lcd
-                days_since = int((datetime.utcnow() - lcd_dt).total_seconds() / 86400)
-                if days_since > 14:
-                    overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
-            except Exception as e:
-                logger.warning(f"Date parse error in employee performance: {lcd} - {e}")
-                overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
+            
+            expiry = c.get("expiry_date")
+            if expiry:
+                try:
+                    if isinstance(expiry, str):
+                        dt = datetime.fromisoformat(expiry.replace("Z", "+00:00")) if "+" in expiry or "Z" in expiry else datetime.fromisoformat(expiry)
+                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
+                    else:
+                        dt = expiry
+                    
+                    if dt < now:
+                        overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
+                except Exception as e:
+                    logger.warning(f"Date parse error in employee performance: {expiry} - {e}")
 
         activity_map = {}
         for a in activities:
@@ -1252,17 +924,7 @@ def list_users(payload = Depends(verify_token)):
         raise HTTPException(status_code=403, detail="Permission denied")
     
     if not supabase:
-        demo_user_list = []
-        for user in DEMO_USERS.values():
-            demo_user_list.append({
-                "id": user["id"],
-                "name": user["name"],
-                "email": user["email"],
-                "role": user["role"],
-                "status": "active",
-                "created_at": datetime.utcnow().isoformat()
-            })
-        return {"data": demo_user_list, "total": len(demo_user_list)}
+        raise HTTPException(status_code=503, detail="Database not configured")
     
     try:
         logger.info(f"LIST_USERS: Fetching for {payload['sub']}")
@@ -1321,22 +983,34 @@ def delete_client(client_id: str, payload = Depends(verify_token)):
         print(f"Error deleting client: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/api/admin/users/{user_id}")
+def delete_user(user_id: str, payload = Depends(verify_token)):
+    if payload["role"] not in ["manager", "admin"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    try:
+        # Delete user from Supabase auth (if possible via admin API) or just from public.users table
+        # Note: Deleting from public.users might trigger cascade delete if set up, or just delete the record.
+        # Ideally we should delete from auth.users too but that requires service_role key with admin client.
+        # For now, we delete from public.users which is what the app uses.
+        
+        result = supabase.table("users").delete().eq("id", user_id).execute()
+        print(f"User deleted: {user_id}")
+        return {"message": "User deleted successfully"}
+    except Exception as e:
+        print(f"Error deleting user: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/manager/alerts")
 def manager_alerts(payload = Depends(verify_token)):
     if payload["role"] not in ["manager", "admin"]:
         raise HTTPException(status_code=403, detail="Permission denied")
     
     if not supabase:
-        employees = [{"id": u["id"], "name": u.get("name", "Employee")} for u in DEMO_USERS.values() if u.get("role") == "employee"]
-        today = datetime.utcnow().date().isoformat()
-        alerts = []
-        for emp in employees:
-            have_dmr = any((r.get("employee_id") == emp["id"] and r.get("date") == today) for r in DEMO_DAILY_REPORTS)
-            if not have_dmr:
-                have_dmr = any((a.get("employee_id") == emp["id"] and (a.get("category") == "daily_report") and str(a.get("created_at", "")).startswith(today)) for a in DEMO_ACTIVITY_LOGS)
-            if not have_dmr:
-                alerts.append({"type": "dmr_missing", "employee_id": emp["id"], "name": emp["name"], "date": today})
-        return {"data": alerts}
+        raise HTTPException(status_code=503, detail="Database not configured")
 
 @app.get("/api/manager/workload-distribution")
 def workload_distribution(payload = Depends(verify_token)):
@@ -1415,50 +1089,38 @@ def assign_round_robin(payload = Depends(verify_token)):
         raise HTTPException(status_code=403, detail="Permission denied")
     
     if not supabase:
-        emps = [u for u in DEMO_USERS.values() if u.get("role") == "employee"]
-        if not emps:
-            return {"message": "No employees"}
-        emp_ids = [e["id"] for e in emps]
-        i = 0
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    # Implement round robin logic for Supabase
+    try:
+        # Get unassigned clients
+        unassigned = supabase.table("clients").select("*").is_("assigned_employee_id", "null").execute()
+        clients = unassigned.data or []
+        if not clients:
+            return {"message": "No unassigned clients"}
+        
+        # Get employees
+        emps_res = supabase.table("users").select("id").eq("role", "employee").execute()
+        emp_ids = [e["id"] for e in emps_res.data or []]
+        
+        if not emp_ids:
+            return {"message": "No employees found"}
+            
         changes = []
-        for idx, c in enumerate(DEMO_CLIENTS):
-            if not c.get("assigned_employee_id"):
-                assign_to = emp_ids[i % len(emp_ids)]
-                DEMO_CLIENTS[idx] = {**c, "assigned_employee_id": assign_to}
-                changes.append({"client_id": c["id"], "assigned_employee_id": assign_to})
-                i += 1
-        return {"message": "Round robin applied", "changes": changes}
-    raise HTTPException(status_code=503, detail="Database not configured")
+        for i, c in enumerate(clients):
+            assign_to = emp_ids[i % len(emp_ids)]
+            supabase.table("clients").update({"assigned_employee_id": assign_to}).eq("id", c["id"]).execute()
+            changes.append({"client_id": c["id"], "assigned_employee_id": assign_to})
+            
+        return {"message": f"Assigned {len(changes)} clients", "changes": changes}
+    except Exception as e:
+        logger.error(f"Round robin assignment failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/manager/report-flags")
 def report_flags(payload = Depends(verify_token)):
     if payload["role"] not in ["manager", "admin"]:
         raise HTTPException(status_code=403, detail="Permission denied")
-    def demo_flags():
-        today = datetime.utcnow().date().isoformat()
-        flags = []
-        by_emp = {}
-        for r in DEMO_DAILY_REPORTS:
-            if r.get("date") != today:
-                continue
-            emp = r.get("employee_id")
-            m = r.get("metrics", {})
-            def names_from(s):
-                if not s: return []
-                return [x.strip().lower() for x in str(s).split(',') if x.strip()]
-            all_names = names_from(m.get("ta_calls_to")) + names_from(m.get("renewal_calls_to")) + names_from(m.get("service_calls_to"))
-            if not all_names: continue
-            cnt = by_emp.get(emp) or {}
-            for n in all_names:
-                cnt[n] = cnt.get(n, 0) + 1
-            by_emp[emp] = cnt
-        for emp_id, cnt in by_emp.items():
-            for name, c in cnt.items():
-                if c > 1:
-                    flags.append({"employee_id": emp_id, "name": name, "count": c, "date": today})
-        return {"data": flags}
-    if not supabase:
-        return demo_flags()
     try:
         today = datetime.utcnow().date().isoformat()
         res = supabase.table("daily_reports").select("employee_id,metrics,date,created_at").eq("date", today).execute()
@@ -1481,8 +1143,9 @@ def report_flags(payload = Depends(verify_token)):
                 if c > 1:
                     flags.append({"employee_id": emp_id, "name": name, "count": c, "date": today})
         return {"data": flags}
-    except Exception:
-        return demo_flags()
+    except Exception as e:
+        logger.error(f"Report flags error: {e}")
+        return {"data": []}
 
 @app.get("/api/export/clients")
 def export_clients(payload = Depends(verify_token)):
@@ -1926,3 +1589,7 @@ def export_reports(payload = Depends(verify_token)):
     except Exception as e:
         logger.error(f"Error exporting reports: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
