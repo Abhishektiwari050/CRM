@@ -43,12 +43,11 @@ def manager_stats(payload = Depends(require_manager)):
                     dt = datetime.fromisoformat(last_contact.replace("Z", "+00:00")) if "+" in last_contact or "Z" in last_contact else datetime.fromisoformat(last_contact)
                     dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
                     diff_days = (now - dt).days
-                    if diff_days <= 30:
-                        is_overdue = False # Contacted recently (Good or Due Soon is considered "Not Overdue" for efficiency calc?)
-                        # Actually efficiency usually penalizes overdue. 
-                        # If status is "Due Soon" (15-30 days), is that "Overdue"?
-                        # Usually Overdue means > 30.
-                        # So if diff <= 30, it is NOT overdue.
+                    # Overdue if >= 15 days (User defined: > 15)
+                    # "Due soon" is 7-14.
+                    # "Good" is < 7.
+                    if diff_days < 15:
+                         is_overdue = False 
                 except:
                     pass
             

@@ -92,9 +92,9 @@ const Dashboard = (() => {
 
         const daysSince = Math.floor((new Date() - new Date(lastContactDate)) / (1000 * 60 * 60 * 24));
 
-        if (daysSince <= 14) return 'Good';
-        if (daysSince <= 30) return 'Due Soon';
-        return 'Overdue';
+        if (daysSince < 7) return 'Good';
+        if (daysSince <= 14) return 'Due Soon';
+        return 'Overdue'; // > 15 (covering gap of 15 if logic implies >= 15)
     };
 
     // Helper: Animate Numbers

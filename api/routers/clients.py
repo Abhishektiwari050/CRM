@@ -47,18 +47,17 @@ def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Q
                 except Exception:
                     pass
 
-            # Recency Logic
-            # Good: <= 14 days
-            # Due Soon: 15-30 days
-            # Overdue: > 30 days or Never (9999)
+            # Recency Logic (User Defined)
+            # Good: < 7 days
+            # Due Soon: 7-14 days
+            # Overdue: > 15 days (Treating as >= 15 for safety/continuity, ensuring no gap at 15)
             
             status = "overdue"
-            if days_since <= 14:
-                status = "good"
-            elif days_since <= 30:
+            if days_since < 7:
+                status = "good" 
+            elif days_since <= 14:
                 status = "due_soon"
-            
-            # Additional check: If never contacted, it's overdue (handled by initial status="overdue")
+            # Else (>= 15) -> Overdue
 
             # Still calculate expiry days for display/sorting if needed, but NOT for status
             expiry = c.get("expiry_date")
