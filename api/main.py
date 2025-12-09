@@ -153,15 +153,32 @@ app.include_router(analytics_router)
 # Root & Health Endpoints
 # ============================================================================
 
+# ============================================================================
+# Static Files & Frontend Serving
+# ============================================================================
+
+import os
+from starlette.responses import FileResponse
+
+# 1. Mount Legacy Directories
+legacy_dirs = [
+    "assets", "static", "login_page", "employee_dashboard_page", 
+    "manager_dashboard_page", "daily_work_report", "activity_logging_page", 
+    "notifications_page", "reports_page", "management_page"
+]
+
+for dir_name in legacy_dirs:
+    if os.path.exists(dir_name):
+        app.mount(f"/{dir_name}", StaticFiles(directory=dir_name, html=True), name=dir_name)
+
+# 2. Mount React Assets
+if os.path.exists("frontend/dist/react-assets"):
+    app.mount("/react-assets", StaticFiles(directory="frontend/dist/react-assets"), name="react-assets")
+
+# 3. Serve React App (SPA)
 @app.get("/")
-def root():
-    """Root endpoint"""
-    return {
-        "status": "healthy",
-        "service": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "environment": settings.APP_ENV
-    }
+async def read_root():
+    return FileResponse("frontend/dist/index.html")
 
 @app.get("/api/health")
 def health_check():
@@ -171,6 +188,24 @@ def health_check():
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION
     }
+
+# Catch-all for React Router (must be last)
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    # If path starts with api/, return 404 (handled by routers if matched, but here if not)
+    if full_path.startswith("api/"):
+        return JSONResponse({"error": "Not found"}, status_code=404)
+    
+    # Check if file exists in frontend/dist (e.g. favicon.ico)
+    possible_file = os.path.join("frontend/dist", full_path)
+    if os.path.exists(possible_file) and os.path.isfile(possible_file):
+        return FileResponse(possible_file)
+
+    # Otherwise serve index.html for SPA routing
+    if os.path.exists("frontend/dist/index.html"):
+        return FileResponse("frontend/dist/index.html")
+    
+    return JSONResponse({"error": "Frontend not found (Run build)"}, status_code=404)
 
 # ============================================================================
 # Startup / Shutdown Events

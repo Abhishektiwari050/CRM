@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: competence-crm
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn -k uvicorn.workers.UvicornWorker api.main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: SUPABASE_URL
+        fromGroup: shared-credentials
+      - key: SUPABASE_KEY
+        fromGroup: shared-credentials
+      - key: JWT_SECRET
+        generateValue: true
+      - key: APP_ENV
+        value: production
