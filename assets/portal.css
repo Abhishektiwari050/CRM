@@ -86,14 +86,29 @@ body {
     color: #22c55e;
 }
 
+.stat-card.green h3,
+.stat-card.green p {
+    color: #166534;
+}
+
 .stat-card.orange .icon-wrapper {
     background: #fff7ed;
     color: #f97316;
 }
 
+.stat-card.orange h3,
+.stat-card.orange p {
+    color: #c2410c;
+}
+
 .stat-card.red .icon-wrapper {
     background: #fef2f2;
     color: #ef4444;
+}
+
+.stat-card.red h3,
+.stat-card.red p {
+    color: #dc2626;
 }
 
 .stat-card h3 {

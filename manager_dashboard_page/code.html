@@ -831,7 +831,7 @@
                     <td><div style="font-size:14px;font-weight:600">${e.assigned_clients}</div><div style="font-size:11px;color:#64748b">Total Clients</div></td>
                     <td><div style="font-size:14px;font-weight:600;color:${e.overdue_clients > 0 ? '#ef4444' : '#10b981'}">${e.overdue_clients}</div><div style="font-size:11px;color:#64748b">Overdue</div></td>
                     <td><div style="font-size:14px;font-weight:600">${e.activities_this_week}</div><div style="font-size:11px;color:#64748b">Activities</div></td>
-                    <td><div class="progress-bar"><div class="progress-fill ${e.efficiency >= 8 ? 'high' : e.efficiency >= 5 ? 'medium' : 'low'}" style="width:${e.efficiency * 10}%"></div></div><div style="font-size:11px;text-align:right;margin-top:4px">${e.efficiency}/10</div></td>
+                    <td><div class="progress-bar"><div class="progress-fill ${e.efficiency >= 80 ? 'high' : e.efficiency >= 50 ? 'medium' : 'low'}" style="width:${e.efficiency}%"></div></div><div style="font-size:11px;text-align:right;margin-top:4px">${e.efficiency}%</div></td>
                     <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${e.id}')"><i class="fas fa-trash"></i></button></td>
                 </tr>`).join('');
             },

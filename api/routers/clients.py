@@ -90,6 +90,54 @@ def list_clients(payload = Depends(verify_token), employee_id: Optional[str] = Q
         logger.error(f"Error loading clients: {e}")
         return {"data": [], "total": 0, "error": str(e)}
 
+@router.get("/{client_id}")
+def get_client(client_id: str, payload = Depends(verify_token)):
+    """
+    Get single client details
+    """
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    try:
+        res = supabase.table("clients").select("*").eq("id", client_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        client = res.data[0]
+        
+        
+        # Security check: If employee, ensure assigned
+        role = payload.get("role", "")
+        if role in ["manager", "admin"]:
+            pass
+        elif client.get("assigned_employee_id") != payload["sub"]:
+             raise HTTPException(status_code=403, detail="Not authorized to view this client")
+        
+        # Classify status (reuse logic if possible, or just duplicate for now to be safe)
+        last_contact = client.get("last_contact_date")
+        days_since = 9999
+        if last_contact:
+            try:
+                lc_dt = datetime.fromisoformat(last_contact.replace("Z", "+00:00")) if "+" in last_contact or "Z" in last_contact else datetime.fromisoformat(last_contact)
+                lc_dt = lc_dt.replace(tzinfo=None) if lc_dt.tzinfo else lc_dt
+                diff = (datetime.utcnow() - lc_dt).total_seconds()
+                days_since = math.floor(diff / 86400)
+            except: pass
+            
+        status = "overdue"
+        if days_since < 7: status = "good"
+        elif days_since <= 14: status = "due_soon"
+        
+        client["status"] = status
+        client["days_since_contact"] = days_since
+        
+        return client
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting client {client_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("")
 def create_client(client: ClientCreate, payload = Depends(require_manager)):
     """
@@ -158,6 +206,35 @@ def delete_client(client_id: str, payload = Depends(require_manager)):
         return {"message": "Client deleted successfully"}
     except Exception as e:
         logger.error(f"Error deleting client: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/{client_id}")
+def update_client(client_id: str, client: dict, payload = Depends(require_manager)):
+    """
+    Update client details
+    """
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    try:
+        # Check if client exists
+        res = supabase.table("clients").select("*").eq("id", client_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+            
+        allowed_fields = ["name", "member_id", "city", "products_posted", "expiry_date", "contact_email", "contact_phone", "status", "last_contact_date", "assigned_employee_id"]
+        data = {k: v for k, v in client.items() if k in allowed_fields}
+        
+        if not data:
+            raise HTTPException(status_code=400, detail="No valid fields to update")
+            
+        result = supabase.table("clients").update(data).eq("id", client_id).execute()
+        logger.info(f"Client updated: {client_id}")
+        return {"message": "Client updated", "data": result.data[0]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating client: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================

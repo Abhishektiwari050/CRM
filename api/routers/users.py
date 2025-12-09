@@ -66,6 +66,47 @@ def create_employee(emp: EmployeeCreate, payload = Depends(require_manager)):
         logger.error(f"Error creating employee: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.patch("/admin/users/{user_id}")
+def update_user(user_id: str, user_update: dict, payload = Depends(require_manager)):
+    """
+    Update user details (Name, Email, Password)
+    """
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    
+    try:
+        # Check if user exists
+        current = supabase.table("users").select("*").eq("id", user_id).execute()
+        if not current.data:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        data = {}
+        if "name" in user_update and user_update["name"]:
+            data["name"] = user_update["name"]
+        if "email" in user_update and user_update["email"]:
+            # Check unique if email changing
+            if user_update["email"] != current.data[0]["email"]:
+                exists = supabase.table("users").select("id").eq("email", user_update["email"]).execute()
+                if exists.data:
+                    raise HTTPException(status_code=400, detail="Email already in use")
+            data["email"] = user_update["email"]
+        
+        if "password" in user_update and user_update["password"]:
+            data["password_hash"] = hash_password(user_update["password"])
+            
+        if not data:
+             raise HTTPException(status_code=400, detail="No valid fields to update")
+             
+        result = supabase.table("users").update(data).eq("id", user_id).execute()
+        logger.info(f"User updated: {user_id}")
+        return {"message": "User updated", "data": result.data[0]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating user: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.delete("/admin/users/{user_id}")
 def delete_user(user_id: str, payload = Depends(require_manager)):
     """

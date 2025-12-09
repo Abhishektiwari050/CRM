@@ -1,42 +1,55 @@
 @echo off
-echo Loading environment variables from .env file...
-for /f "usebackq delims=" %%a in (".env") do (
-    set "line=%%a"
-    REM Skip empty lines and comments
-    echo %%a | findstr /r "^[^#].*=" >nul
-    if not errorlevel 1 (
-        set %%a
-    )
+setlocal EnableDelayedExpansion
+
+echo ========================================
+echo   Competence CRM - Startup Script
+echo ========================================
+
+echo [1/6] Checking Environment...
+if exist ".venv\Scripts\activate.bat" (
+    call .venv\Scripts\activate.bat
+    echo   - Virtual Environment Activated
+) else (
+    echo   - Using System Python (Ensure dependencies are installed)
 )
 
-echo Killing all Python processes...
-taskkill /F /IM python.exe 2>nul
-taskkill /F /IM python3.12.exe 2>nul
+echo [2/6] Terminating Old Processes...
+taskkill /F /IM python.exe /T >nul 2>&1
+taskkill /F /IM uvicorn.exe /T >nul 2>&1
+echo   - Cleaned up running instances
 timeout /t 2 /nobreak >nul
 
-echo Deleting all cache files...
-del /s /q __pycache__\*.pyc 2>nul
-rmdir /s /q __pycache__ 2>nul
-rmdir /s /q api\__pycache__ 2>nul
-rmdir /s /q .vercel\cache 2>nul
-timeout /t 1 /nobreak >nul
+echo [3/6] Clearing Cache...
+if exist "__pycache__" rmdir /s /q "__pycache__"
+if exist "api\__pycache__" rmdir /s /q "api\__pycache__"
+del /s /q *.pyc >nul 2>&1
+echo   - Cache cleared
 
-echo Starting API server with Supabase connection...
-echo Starting API server with Supabase connection...
-start "CRM API" cmd /k "python -m uvicorn api.main:app --host 0.0.0.0 --port 8001 --reload"
+echo [4/6] Starting Backend API (Port 8001)...
+start "Competence CRM API" cmd /k "python -m uvicorn api.main:app --host 0.0.0.0 --port 8001 --reload"
 
-echo Waiting for API to start...
+echo   - Waiting for API to wait warm up (5s)...
 timeout /t 5 /nobreak >nul
 
-echo Starting frontend server...
-start "CRM Frontend" cmd /k "python server.py"
+echo [5/6] Starting Legacy Server (Port 3000)...
+start "Competence CRM Legacy" cmd /k "python server.py"
+
+echo [6/6] Starting Manager Portal (Port 5173)...
+start "Competence CRM Manager" cmd /k "cd frontend && npm run dev"
 
 echo.
 echo ========================================
-echo Competence CRM Started Successfully
+echo   SYSTEM ONLINE
 echo ========================================
-echo API: http://localhost:8001
-echo Frontend: http://localhost:3000
+echo   Manager/Login (New):  http://localhost:5173
+echo   Legacy Backend:       http://localhost:3000
+echo   API:                  http://localhost:8001
+echo   Docs:                 http://localhost:8001/docs
 echo ========================================
-echo Manager Login: manager@crm.com / password123
-echo Admin Login: admin@company.com / ChangeMe123!
+echo   [Credentials]
+echo   Manager:  manager@crm.com  (Password: password123)
+echo   Audit:    manager_audit_final@crm.com  (Password: password123)
+echo ========================================
+echo   To stop servers, close the popup windows.
+echo ========================================
+pause

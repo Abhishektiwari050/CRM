@@ -410,10 +410,17 @@
 
         const data = await res.json();
         localStorage.setItem('token', data.access_token);
+        // Also set in sessionStorage for React App compatibility
+        sessionStorage.setItem('token', data.access_token);
         sessionStorage.setItem('currentUser', JSON.stringify(data.user));
 
         const role = (data.user.role || '').toLowerCase();
-        const redirectUrl = role === 'manager' || role === 'admin' ? '/manager_dashboard_page/code.html' : '/employee_dashboard_page/index.html';
+        // Redirect Managers to the new React Portal (Dev Server URL)
+        // Employees stay on the existing legacy dashboard
+        const redirectUrl = role === 'manager' || role === 'admin'
+          ? 'http://localhost:5173'
+          : '/employee_dashboard_page/index.html';
+
         location.href = redirectUrl;
       } catch (error) {
         console.error('Login error:', error);
@@ -456,7 +463,7 @@
           const userData = JSON.parse(user);
           const role = (userData.role || '').toLowerCase();
           const redirectUrl = role === 'manager' || role === 'admin'
-            ? '/manager_dashboard_page/code.html'
+            ? 'http://localhost:5173'
             : '/employee_dashboard_page/index.html';
           location.href = redirectUrl;
         } catch (e) {

@@ -72,7 +72,7 @@ def employee_performance(payload = Depends(require_manager)):
         employees_res = supabase.table("users").select("id,name,email").eq("role", "employee").execute()
         employees = employees_res.data or []
         
-        clients_res = supabase.table("clients").select("id,assigned_employee_id,expiry_date").execute()
+        clients_res = supabase.table("clients").select("id,assigned_employee_id,expiry_date,last_contact_date").execute()
         clients = clients_res.data or []
         
         week_ago = (datetime.utcnow() - timedelta(days=7))
@@ -88,15 +88,20 @@ def employee_performance(payload = Depends(require_manager)):
             if not emp_id: continue
             assigned_map[emp_id] = assigned_map.get(emp_id, 0) + 1
             
-            expiry = c.get("expiry_date")
-            if expiry:
+            last_contact = c.get("last_contact_date")
+            is_overdue = True # Default overdue if never contacted
+            if last_contact:
                 try:
-                    if isinstance(expiry, str):
-                        dt = datetime.fromisoformat(expiry.replace("Z", "+00:00")) if "+" in expiry or "Z" in expiry else datetime.fromisoformat(expiry)
-                        dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
-                    else: dt = expiry
-                    if dt < now: overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
+                    lc_dt = datetime.fromisoformat(last_contact.replace("Z", "+00:00")) if "+" in last_contact or "Z" in last_contact else datetime.fromisoformat(last_contact)
+                    lc_dt = lc_dt.replace(tzinfo=None) if lc_dt.tzinfo else lc_dt
+                    diff = (now - lc_dt).days
+                    # Recency Thresholds: Good < 7, Due Soon 7-14, Overdue >= 15
+                    if diff < 15:
+                        is_overdue = False
                 except: pass
+            
+            if is_overdue:
+                overdue_map[emp_id] = overdue_map.get(emp_id, 0) + 1
         
         activity_map = {}
         for a in activities:
@@ -107,7 +112,8 @@ def employee_performance(payload = Depends(require_manager)):
         for e in employees:
             assigned = assigned_map.get(e["id"], 0)
             overdue_count = overdue_map.get(e["id"], 0)
-            efficiency = round((assigned - overdue_count) / assigned * 100) if assigned > 0 else 100
+            # Efficiency: (Assigned - Overdue) / Assigned * 100
+            efficiency = round((assigned - overdue_count) / assigned * 100) if assigned > 0 else 0
             data.append({
                 "id": e["id"],
                 "name": e.get("name", "Unknown"),

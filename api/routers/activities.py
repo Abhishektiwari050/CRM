@@ -38,7 +38,10 @@ def log_activity(activity: ActivityLog, payload = Depends(verify_token)):
     }
     
     result = supabase.table("activity_logs").insert(data).execute()
-    supabase.table("clients").update({"last_contact_date": datetime.utcnow().isoformat()}).eq("id", activity.client_id).execute()
+    supabase.table("clients").update({
+        "last_contact_date": datetime.utcnow().isoformat(),
+        "status": "Good"
+    }).eq("id", activity.client_id).execute()
 
     # Create follow-up notification
     try:
@@ -89,8 +92,23 @@ def activity_feed(
         
         res = q.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
         total = res.count or 0
+        
+        data = res.data or []
+        # Enrich with client name manually to ensure reliability
+        if data:
+            client_ids = list(set([item["client_id"] for item in data if item.get("client_id")]))
+            if client_ids:
+                try:
+                    cres = supabase.table("clients").select("id, name").in_("id", client_ids).execute()
+                    cmap = {c["id"]: c["name"] for c in cres.data}
+                    for item in data:
+                        item["client_name"] = cmap.get(item["client_id"], "Unknown Client")
+                except Exception as e:
+                    logger.warning(f"Failed to enrich activities with client names: {e}")
+                    for item in data: item["client_name"] = "Unknown Client"
+        
         logger.info(f"ACTIVITY_FEED: Found {total} activities")
-        return {"data": res.data or [], "total": total, "limit": limit, "offset": offset}
+        return {"data": data, "total": total, "limit": limit, "offset": offset}
     except Exception as e:
         logger.error(f"ACTIVITY_FEED: ERROR {type(e).__name__}: {e}")
         return {"data": [], "total": 0, "limit": limit, "offset": offset}
