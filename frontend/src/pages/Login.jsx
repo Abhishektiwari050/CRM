@@ -29,7 +29,7 @@ const Login = () => {
                 if (role === 'employee') {
                     // Redirect to Legacy Dashboard on Port 3000 with token AND user
                     const userStr = encodeURIComponent(JSON.stringify(data.user));
-                    window.location.href = `http://localhost:3000/employee_dashboard_page/index.html?token=${data.access_token}&user=${userStr}`;
+                    window.location.href = `/employee_dashboard_page/index.html?token=${data.access_token}&user=${userStr}`;
                 } else {
                     // Manager/Admin stays in React App
                     navigate('/');
