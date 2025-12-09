@@ -162,9 +162,9 @@ from starlette.responses import FileResponse
 
 # 1. Mount Legacy Directories
 legacy_dirs = [
-    "assets", "static", "login_page", "employee_dashboard_page", 
-    "manager_dashboard_page", "daily_work_report", "activity_logging_page", 
-    "notifications_page", "reports_page", "management_page"
+    "assets", "static", "employee_dashboard_page", 
+    "daily_work_report", "activity_logging_page", 
+    "notifications_page"
 ]
 
 for dir_name in legacy_dirs:

@@ -11,18 +11,18 @@
          { icon: 'bell', text: 'Notifications', href: '/notifications_page/code.html', id: 'notifications', badge: 0 }
       ],
       manager: [
-         { icon: 'bar-chart', text: 'Dashboard', href: '/manager_dashboard_page/code.html', id: 'dashboard' },
-         { icon: 'users', text: 'All Clients', href: '/employee_dashboard_page/code.html', id: 'clients' },
-         { icon: 'bell', text: 'Notifications', href: '/notifications_page/code.html', id: 'notifications', badge: 0 },
-         { icon: 'settings', text: 'Team Management', href: '/management_page/code.html', id: 'management' },
-         { icon: 'file-text', text: 'Reports', href: '/reports_page/code.html', id: 'reports' }
+         { icon: 'bar-chart', text: 'Dashboard', href: '/', id: 'dashboard' },
+         { icon: 'users', text: 'All Clients', href: '/clients', id: 'clients' },
+         { icon: 'bell', text: 'Notifications', href: '/notifications', id: 'notifications', badge: 0 },
+         { icon: 'settings', text: 'Team Management', href: '/team', id: 'management' },
+         { icon: 'file-text', text: 'Reports', href: '/reports', id: 'reports' }
       ],
       admin: [
-         { icon: 'bar-chart', text: 'Dashboard', href: '/manager_dashboard_page/code.html', id: 'dashboard' },
-         { icon: 'users', text: 'All Clients', href: '/employee_dashboard_page/code.html', id: 'clients' },
-         { icon: 'bell', text: 'Notifications', href: '/notifications_page/code.html', id: 'notifications', badge: 0 },
-         { icon: 'settings', text: 'Team Management', href: '/management_page/code.html', id: 'management' },
-         { icon: 'file-text', text: 'Reports', href: '/reports_page/code.html', id: 'reports' }
+         { icon: 'bar-chart', text: 'Dashboard', href: '/', id: 'dashboard' },
+         { icon: 'users', text: 'All Clients', href: '/clients', id: 'clients' },
+         { icon: 'bell', text: 'Notifications', href: '/notifications', id: 'notifications', badge: 0 },
+         { icon: 'settings', text: 'Team Management', href: '/team', id: 'management' },
+         { icon: 'file-text', text: 'Reports', href: '/reports', id: 'reports' }
       ]
    };
 
