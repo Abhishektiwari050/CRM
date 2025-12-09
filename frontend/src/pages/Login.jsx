@@ -9,6 +9,10 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    React.useEffect(() => {
+        document.title = 'Competence CRM Login';
+    }, []);
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
