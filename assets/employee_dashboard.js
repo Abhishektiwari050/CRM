@@ -1,4 +1,4 @@
-const Dashboard = (() => {
+(() => {
     // DOM Elements
     const els = {
         loading: document.getElementById('loadingOverlay'),
@@ -43,8 +43,8 @@ const Dashboard = (() => {
         }
 
         // 3. Role Check
-        if (state.user.role !== 'employee') {
-            window.location.href = '/manager_dashboard_page/code.html';
+        if ((state.user.role || '').toLowerCase() !== 'employee') {
+            window.location.href = '/';
             return;
         }
 
@@ -267,18 +267,18 @@ const Dashboard = (() => {
             return `
                 <tr>
                     <td>
-                        <div style="font-weight: 500;">${client.name}</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">ID: ${client.id.slice(0, 8)}</div>
+                        <div class="font-medium">${client.name}</div>
+                        <div class="text-xs text-muted">ID: ${client.id.slice(0, 8)}</div>
                     </td>
                     <td>
                         <div>${client.contact_email || '-'}</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">${client.contact_phone || '-'}</div>
+                        <div class="text-xs text-muted">${client.contact_phone || '-'}</div>
                     </td>
                     <td><span class="badge ${badgeClass}">${status}</span></td>
                     <td>${formatDate(client.last_contact_date)}</td>
                     <td>${formatDate(client.expiry_date)}</td>
                     <td>
-                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="Dashboard.openModal('${client.id}')">
+                        <button class="btn-primary btn-sm" onclick="Dashboard.openModal('${client.id}')">
                             View
                         </button>
                     </td>
@@ -341,19 +341,97 @@ const Dashboard = (() => {
         if (e.target === document.getElementById('clientModal')) closeModal();
     });
 
+    // Add Client Logic
+    const openAddClientModal = () => {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const modalOverlay = document.getElementById('clientModal');
+
+        modalTitle.textContent = 'Add New Client';
+        modalContent.innerHTML = `
+            <form id="addClientForm" onsubmit="Dashboard.createClient(event)">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Member ID</label>
+                        <input type="text" name="member_id">
+                    </div>
+                </div>
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone">
+                    </div>
+                </div>
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" name="city">
+                    </div>
+                    <div class="form-group">
+                        <label>Products Posted</label>
+                        <input type="number" name="products_posted" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label>Expiry Date</label>
+                    <input type="date" name="expiry_date">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="Dashboard.closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Client</button>
+                </div>
+            </form>
+        `;
+        modalOverlay.classList.add('show');
+    };
+
+    const createClient = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        try {
+            const payload = {
+                name: formData.get('name'),
+                member_id: formData.get('member_id'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                city: formData.get('city'),
+                products_posted: parseInt(formData.get('products_posted') || 0),
+                expiry_date: formData.get('expiry_date')
+            };
+
+            await Auth.apiCall('/api/clients', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            closeModal();
+            loadData(); // Refresh list
+        } catch (error) {
+            console.error('Create failed', error);
+            alert('Failed to create client: ' + error.message);
+        }
+    };
+
     // Public API
-    return {
+    window.Dashboard = {
         init,
-        refresh: async () => {
-            showLoading();
-            await loadData();
-            hideLoading();
-        },
+        refresh: loadData,
         filterClients,
         sortData,
-        openModal,
-        closeModal
+        viewClient: openModal,
+        closeModal,
+        openAddClientModal,
+        createClient
     };
+
 })();
 
 // Update button in renderTable to use Dashboard.openModal
@@ -361,4 +439,4 @@ const Dashboard = (() => {
 // Since I can't selectively patch inside a function easily without sending the whole function, I will rewrite the end of the file including the return block.
 
 // Start
-document.addEventListener('DOMContentLoaded', Dashboard.init);
+document.addEventListener('DOMContentLoaded', () => window.Dashboard.init());

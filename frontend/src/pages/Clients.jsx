@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Download, UserPlus } from 'lucide-react';
+import { Search, Filter, Download, UserPlus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import ClientEditModal from '../components/clients/ClientEditModal';
+import ClientCreateModal from '../components/clients/ClientCreateModal';
 
 const Clients = () => {
     const [clients, setClients] = useState([]);
@@ -9,72 +10,140 @@ const Clients = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-
+    const [showCreateModal, setShowCreateModal] = useState(false);
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const token = sessionStorage.getItem('token');
+                const headers = { 'Authorization': `Bearer ${token}` };
+
                 const [clientsRes, usersRes] = await Promise.all([
-                    fetch('/api/clients', { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch('/api/clients', { headers }),
+                    fetch('/api/users', { headers })
                 ]);
 
-                const clientsJson = await clientsRes.json();
-                const usersJson = await usersRes.json();
+                if (clientsRes.ok) {
+                    const clientsData = await clientsRes.json();
+                    if (clientsData && Array.isArray(clientsData.data)) {
+                        setClients(clientsData.data);
+                    } else {
+                        console.error("Invalid clients data format:", clientsData);
+                        setClients([]);
+                    }
+                }
 
-                setClients(clientsJson.data || []);
-                // Filter users to only show employees (role='employee')
-                const allUsers = usersJson.data || [];
-                setEmployees(allUsers.filter(u => u.role === 'employee'));
+                if (usersRes.ok) {
+                    const usersData = await usersRes.json();
+                    if (usersData && Array.isArray(usersData.data)) {
+                        setEmployees(usersData.data.filter(u => u.role === 'employee'));
+                    } else {
+                        setEmployees([]);
+                    }
+                }
             } catch (error) {
                 console.error("Failed to fetch data", error);
+                setClients([]); // Fallback
             } finally {
                 setLoading(false);
             }
         };
+
         fetchData();
     }, []);
 
-    // Helper to get employee name
     const getEmployeeName = (id) => {
-        if (!id) return <span className="text-slate-400 italic">Unassigned</span>;
+        if (!id || !Array.isArray(employees)) return 'Unassigned';
         const emp = employees.find(e => e.id === id);
-        return emp ? emp.name : <span className="text-slate-400">Unknown</span>;
+        return emp ? emp.name : 'Unknown';
     };
 
-    const filteredClients = clients.filter(client => {
-        const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.city?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
-
-    const handleExport = async () => {
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
         try {
-            const res = await fetch('/api/export/clients', {
-                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
-            });
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `clients_export_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-        } catch (error) {
-            alert('Export failed');
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString();
+        } catch {
+            return 'Invalid Date';
         }
     };
 
+    const filteredClients = clients.filter(client => {
+        const matchesSearch = (client.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (client.city || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+
     const [editingClient, setEditingClient] = useState(null);
+
+    const handleExport = () => {
+        if (!clients.length) return;
+
+        const headers = ["ID", "Name", "City", "Email", "Phone", "Status", "Expiry Date"];
+        const csvContent = [
+            headers.join(","),
+            ...clients.map(c => [
+                c.id,
+                `"${c.name}"`,
+                `"${c.city || ''}"`,
+                c.contact_email || '',
+                c.contact_phone || '',
+                c.status,
+                c.expiry_date || ''
+            ].join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "clients_export.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const handleEditClick = (client) => {
         setEditingClient(client);
     };
 
     const handleEditSave = (updatedClient) => {
-        // Update local state locally to reflect changes immediately
         setClients(prevClients => prevClients.map(c => c.id === updatedClient.id ? { ...c, ...updatedClient } : c));
         setEditingClient(null);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this client? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const token = sessionStorage.getItem('token');
+            const res = await fetch(`/api/clients/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                setClients(prev => prev.filter(c => c.id !== id));
+            } else {
+                const err = await res.json();
+                alert(`Failed to delete: ${err.detail || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Delete failed', error);
+            alert('Failed to delete client due to network error.');
+        }
+    };
+
+    const handleCreateSave = (newClient) => {
+        setClients(prev => [...prev, newClient]);
+        setShowCreateModal(false);
     };
 
     if (loading) return <div className="text-center p-10 text-slate-500">Loading Clients...</div>;
@@ -94,7 +163,13 @@ const Clients = () => {
                         <Download size={18} />
                         Export CSV
                     </button>
-                    {/* Add Client Modal would go here */}
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+                    >
+                        <UserPlus size={18} />
+                        Add Client
+                    </button>
                 </div>
             </div>
 
@@ -171,17 +246,24 @@ const Clients = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-slate-600 text-sm">
-                                        {client.last_contact_date ? new Date(client.last_contact_date).toLocaleDateString() : 'Never'}
+                                        {formatDate(client.last_contact_date)}
                                     </td>
                                     <td className="px-6 py-4 text-slate-600 text-sm">
-                                        {client.expiry_date ? new Date(client.expiry_date).toLocaleDateString() : '-'}
+                                        {formatDate(client.expiry_date)}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 flex items-center gap-2">
                                         <button
                                             onClick={() => handleEditClick(client)}
                                             className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                                         >
                                             Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(client.id)}
+                                            className="text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                                        >
+                                            <Trash2 size={16} />
+                                            Delete
                                         </button>
                                     </td>
                                 </tr>
@@ -207,8 +289,24 @@ const Clients = () => {
                     onSave={handleEditSave}
                 />
             )}
+
+            {/* Create Modal */}
+            {showCreateModal && (
+                <ClientCreateModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSave={handleCreateSave}
+                />
+            )}
         </div>
     );
 };
 
-export default Clients;
+import ErrorBoundary from '../components/ErrorBoundary';
+
+const ClientsWithBoundary = () => (
+    <ErrorBoundary>
+        <Clients />
+    </ErrorBoundary>
+);
+
+export default ClientsWithBoundary;

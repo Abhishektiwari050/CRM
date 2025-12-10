@@ -2,51 +2,45 @@
 setlocal EnableDelayedExpansion
 
 echo ========================================
-echo   Competence CRM - Startup Script
+echo   Competence CRM - Unified Startup
 echo ========================================
 
-echo [1/6] Checking Environment...
+echo [1/5] Checking Environment...
 if exist ".venv\Scripts\activate.bat" (
     call .venv\Scripts\activate.bat
     echo   - Virtual Environment Activated
 ) else (
-    echo   - Using System Python (Ensure dependencies are installed)
+    echo   - CAUTION: Using System Python
 )
 
-echo [2/6] Terminating Old Processes...
+echo [2/5] Cleaning up old processes...
 taskkill /F /IM python.exe /T >nul 2>&1
 taskkill /F /IM uvicorn.exe /T >nul 2>&1
-echo   - Cleaned up running instances
-timeout /t 2 /nobreak >nul
+timeout /t 1 /nobreak >nul
 
-echo [3/6] Clearing Cache...
-if exist "__pycache__" rmdir /s /q "__pycache__"
-if exist "api\__pycache__" rmdir /s /q "api\__pycache__"
-del /s /q *.pyc >nul 2>&1
-echo   - Cache cleared
+echo [3/5] Building Frontend (React)...
+cd frontend
+call npm run build
+if %errorlevel% neq 0 (
+    echo   - Build FAILED. Aborting.
+    pause
+    exit /b
+)
+cd ..
+echo   - Build Complete.
 
-echo [4/6] Starting Unified Server (Port 8001)...
-start "Competence CRM Unified" cmd /k "python -m uvicorn api.main:app --host 0.0.0.0 --port 8001 --reload"
+echo [4/5] Starting Unified Server (Port 8001)...
+start "Competence CRM Server" cmd /k "python -m uvicorn api.main:app --host 0.0.0.0 --port 8001"
 
-echo   - Waiting for Server to warm up (5s)...
+echo [5/5] Launching Browser...
 timeout /t 5 /nobreak >nul
-
-echo [6/6] Starting Frontend Dev Server (Port 5173)...
-start "Competence CRM Frontend" cmd /k "cd frontend && npm run dev"
+start http://localhost:8001
 
 echo.
 echo ========================================
-echo   SYSTEM ONLINE
+echo   SYSTEM ONLINE at http://localhost:8001
 echo ========================================
-echo   Manager/Login (New):  http://localhost:5173
-echo   Legacy Backend:       http://localhost:3000
-echo   API:                  http://localhost:8001
-echo   Docs:                 http://localhost:8001/docs
-echo ========================================
-echo   [Credentials]
-echo   Manager:  manager@crm.com  (Password: password123)
-echo   Audit:    manager_audit_final@crm.com  (Password: password123)
-echo ========================================
-echo   To stop servers, close the popup windows.
+echo   Manager:     manager@crm.com / password123
+echo   Employee:    employee@crm.com / password123
 echo ========================================
 pause

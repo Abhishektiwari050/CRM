@@ -426,8 +426,13 @@
         </div>
         <div class="card">
             <div class="card-header">
-                <h5>My Clients</h5><button class="btn btn-sm btn-primary" onclick="Dashboard.refresh()">Refresh</button>
-                <!-- Using Dashboard.refresh() which exposes loadData -->
+                <h5>My Clients</h5>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-sm btn-primary" onclick="Dashboard.openAddClientModal()">
+                        <i class="fas fa-plus"></i> Add Client
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="Dashboard.refresh()">Refresh</button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput"

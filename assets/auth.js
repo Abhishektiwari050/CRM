@@ -1,9 +1,9 @@
 (() => {
     const API = window.location.origin;
     const TOKEN_KEY = 'token', USER_KEY = 'currentUser';
-    const getToken = () => localStorage.getItem(TOKEN_KEY);
+    const getToken = () => sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
     const setToken = t => localStorage.setItem(TOKEN_KEY, t);
-    const clearToken = () => { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(USER_KEY) };
+    const clearToken = () => { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(USER_KEY) };
     const getUser = () => { try { const u = sessionStorage.getItem(USER_KEY); return u ? JSON.parse(u) : null } catch { return null } };
     const setUser = u => sessionStorage.setItem(USER_KEY, JSON.stringify(u));
     const logout = () => { clearToken(); location.href = '/' };

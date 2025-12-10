@@ -139,7 +139,7 @@ def get_client(client_id: str, payload = Depends(verify_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("")
-def create_client(client: ClientCreate, payload = Depends(require_manager)):
+def create_client(client: ClientCreate, payload = Depends(verify_token)):
     """
     Create a new client
     """
@@ -147,6 +147,12 @@ def create_client(client: ClientCreate, payload = Depends(require_manager)):
         raise HTTPException(status_code=503, detail="Database not configured")
     
     try:
+        # Auto-assign if creator is an employee
+        assigned_id = None
+        role = payload.get("role", "")
+        if role == "employee":
+            assigned_id = payload["sub"]
+
         data = {
             "name": client.name,
             "member_id": client.member_id or None,
@@ -157,10 +163,26 @@ def create_client(client: ClientCreate, payload = Depends(require_manager)):
             "contact_phone": client.phone or None,
             "status": "new",
             "last_contact_date": None,
+            "assigned_employee_id": assigned_id,
             "created_at": datetime.utcnow().isoformat()
         }
         
         result = supabase.table("clients").insert(data).execute()
+        
+        # Log assignment history if auto-assigned
+        if assigned_id and result.data:
+             try:
+                client_id = result.data[0]["id"]
+                supabase.table("client_assignment_history").insert({
+                    "client_id": client_id,
+                    "assigned_to_employee_id": assigned_id,
+                    "changed_by_user_id": payload["sub"],
+                    "reason": "self_created",
+                    "created_at": datetime.utcnow().isoformat()
+                }).execute()
+             except Exception as h_err:
+                 logger.warning(f"History insert failed for self-created client: {h_err}")
+
         logger.info(f"Client created: {result.data}")
         return {"message": "Client created", "data": result.data[0] if result.data else None}
     except Exception as e:
