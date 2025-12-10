@@ -426,6 +426,7 @@
         refresh: loadData,
         filterClients,
         sortData,
+        openModal,
         viewClient: openModal,
         closeModal,
         openAddClientModal,

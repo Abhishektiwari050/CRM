@@ -3,7 +3,7 @@ Clients Router
 """
 from fastapi import APIRouter, HTTPException, Depends, Query, File, UploadFile
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 import logging
 import random
@@ -231,7 +231,7 @@ def delete_client(client_id: str, payload = Depends(require_manager)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.patch("/{client_id}")
-def update_client(client_id: str, client: dict, payload = Depends(require_manager)):
+def update_client(client_id: str, client: dict, payload = Depends(verify_token)):
     """
     Update client details
     """
@@ -243,21 +243,48 @@ def update_client(client_id: str, client: dict, payload = Depends(require_manage
         res = supabase.table("clients").select("*").eq("id", client_id).execute()
         if not res.data:
             raise HTTPException(status_code=404, detail="Client not found")
+        
+        current_client = res.data[0]
+        role = payload.get("role", "")
+        
+        # Access Control
+        if role == "employee":
+            # Allow employees to update if assigned to them
+            if current_client.get("assigned_employee_id") != payload["sub"]:
+                 raise HTTPException(status_code=403, detail="Not authorized to update this client")
+        elif role not in ["manager", "admin"]:
+            raise HTTPException(status_code=403, detail="Not authorized")
             
         allowed_fields = ["name", "member_id", "city", "products_posted", "expiry_date", "contact_email", "contact_phone", "status", "last_contact_date", "assigned_employee_id"]
+        
+        # Restrict employees from changing assignment
+        if role == "employee" and "assigned_employee_id" in client:
+            del client["assigned_employee_id"]
+
         data = {k: v for k, v in client.items() if k in allowed_fields}
+        
+        # Sanitize data types
+        if "expiry_date" in data and data["expiry_date"] == "":
+            data["expiry_date"] = None
+        if "assigned_employee_id" in data and data["assigned_employee_id"] == "":
+             data["assigned_employee_id"] = None
         
         if not data:
             raise HTTPException(status_code=400, detail="No valid fields to update")
             
         result = supabase.table("clients").update(data).eq("id", client_id).execute()
+        
+        if not result.data:
+            logger.error(f"Update returned no data for client {client_id}. Data: {data}")
+            raise HTTPException(status_code=500, detail="Update failed at database level")
+
         logger.info(f"Client updated: {client_id}")
         return {"message": "Client updated", "data": result.data[0]}
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error updating client: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
 
 # ============================================================================
 # Bulk Operations
