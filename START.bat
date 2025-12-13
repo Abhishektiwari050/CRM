@@ -5,7 +5,7 @@ echo ========================================
 echo   Competence CRM - Unified Startup
 echo ========================================
 
-echo [1/5] Checking Environment...
+echo [1/6] Checking Environment...
 if exist ".venv\Scripts\activate.bat" (
     call .venv\Scripts\activate.bat
     echo   - Virtual Environment Activated
@@ -13,12 +13,20 @@ if exist ".venv\Scripts\activate.bat" (
     echo   - CAUTION: Using System Python
 )
 
-echo [2/5] Cleaning up old processes...
-taskkill /F /IM python.exe /T >nul 2>&1
+echo [2/6] Checking Dependencies...
+cd frontend
+if not exist "node_modules" (
+    echo   - Installing Frontend Dependencies...
+    call npm install
+)
+cd ..
+
+echo [3/6] Cleaning up old processes...
 taskkill /F /IM uvicorn.exe /T >nul 2>&1
+taskkill /F /IM python.exe /T >nul 2>&1
 timeout /t 1 /nobreak >nul
 
-echo [3/5] Building Frontend (React)...
+echo [4/6] Building Frontend (React)...
 cd frontend
 call npm run build
 if %errorlevel% neq 0 (
@@ -29,10 +37,10 @@ if %errorlevel% neq 0 (
 cd ..
 echo   - Build Complete.
 
-echo [4/5] Starting Unified Server (Port 8001)...
+echo [5/6] Starting Unified Server (Port 8001)...
 start "Competence CRM Server" cmd /k "python -m uvicorn api.main:app --host 0.0.0.0 --port 8001"
 
-echo [5/5] Launching Browser...
+echo [6/6] Launching Browser...
 timeout /t 5 /nobreak >nul
 start http://localhost:8001
 

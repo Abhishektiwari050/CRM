@@ -4,6 +4,7 @@ Reports Router - Daily Work Reports
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import Optional, List
 from datetime import datetime, timedelta
+from pydantic import BaseModel
 import logging
 
 from ..models import DailyReport
@@ -155,34 +156,69 @@ def get_report_draft(payload = Depends(verify_token)):
     return {"data": None}
 
 @router.get("/manager/report-flags")
-def report_flags(payload = Depends(verify_token)):
+def report_flags(payload = Depends(require_manager)):
     """
-    Get flags for repeated contacts
+    Get flags for repeated contacts from notifications
     """
-    if payload["role"] not in ["manager", "admin"]:
-        raise HTTPException(status_code=403, detail="Permission denied")
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+        
     try:
-        today = datetime.utcnow().date().isoformat()
-        res = supabase.table("daily_reports").select("employee_id,metrics,date,created_at").eq("date", today).execute()
-        by_emp = {}
-        def names_from(s):
-            if not s: return []
-            return [x.strip().lower() for x in str(s).split(',') if x.strip()]
-        for r in res.data or []:
-            emp = r.get("employee_id")
-            m = r.get("metrics", {})
-            all_names = names_from(m.get("ta_calls_to")) + names_from(m.get("renewal_calls_to")) + names_from(m.get("service_calls_to"))
-            if not all_names: continue
-            cnt = by_emp.get(emp) or {}
-            for n in all_names:
-                cnt[n] = cnt.get(n, 0) + 1
-            by_emp[emp] = cnt
+        # Fetch unread repeated_contact notifications for manager
+        # We need to filter by metrics in the metadata field or rely on 'type' column if we set it
+        # Based on submit_report, type="repeated_contact", user_id="manager"
+        
+        # Note: Supabase JS/Python client syntax for JSON contains filtering might be tricky in python client depending on version
+        # But we can filter in python for now if volume is low, or use exact match on type
+        
+        res = supabase.table("notifications").select("*").eq("user_id", "manager").eq("type", "repeated_contact").eq("is_read", "false").order("created_at", desc=True).execute()
+        
+        notifications = res.data or []
         flags = []
-        for emp_id, cnt in by_emp.items():
-            for name, c in cnt.items():
-                if c > 1:
-                    flags.append({"employee_id": emp_id, "name": name, "count": c, "date": today})
+        
+        if notifications:
+            # Prefetch employee names to avoid N+1
+            emp_ids = list(set([n.get("metadata", {}).get("employee_id") for n in notifications if n.get("metadata", {}).get("employee_id")]))
+            emp_names = {}
+            if emp_ids:
+                users_res = supabase.table("users").select("id,name").in_("id", emp_ids).execute()
+                emp_names = {u["id"]: u["name"] for u in users_res.data or []}
+
+            for n in notifications:
+                meta = n.get("metadata", {})
+                emp_id = meta.get("employee_id")
+                flags.append({
+                    "id": n["id"], # Notification ID for dismissal
+                    "employee_id": emp_id,
+                    "employee_name": emp_names.get(emp_id, "Unknown"),
+                    "name": meta.get("contact_name", "Unknown Client"),
+                    "count": meta.get("count", 0),
+                    "date": n["created_at"]
+                })
+                
         return {"data": flags}
     except Exception as e:
         logger.error(f"Report flags error: {e}")
         return {"data": []}
+
+class DismissFlagRequest(BaseModel):
+    notification_id: str
+
+
+@router.post("/manager/dismiss-flag")
+def dismiss_flag(req: DismissFlagRequest, payload = Depends(require_manager)):
+    """
+    Dismiss a repeated contact flag (mark notification as read)
+    """
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database not configured")
+        
+    try:
+        # Verify it's a manager notification (optional security check)
+        # Just update is_read = true
+        res = supabase.table("notifications").update({"is_read": True}).eq("id", req.notification_id).eq("user_id", "manager").execute()
+        
+        return {"message": "Flag dismissed"}
+    except Exception as e:
+        logger.error(f"Dismiss flag error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
