@@ -1,19 +1,5 @@
 """
 Main FastAPI application with modular routers
-
-This is a refactored version of the original index.py file.
-The original 1877-line file has been split into:
-- models/ - Pydantic models
-- routers/ - API endpoint modules  
-- utils/ - Security and database utilities
-- config.py - Configuration management
-- dependencies.py - Shared dependencies
-
-NOTE: This is a TRANSITION file. To complete the migration:
-1. Uncomment router imports as they are completed
-2. Remove corresponding routes from index.py
-3. Test each router independently
-4. When all routers are done, rename this to main.py and update START.bat
 """
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +12,7 @@ import time
 import uuid
 
 from .config import settings
-from .routers import auth_router  # ✅ Complete
+from .routers import auth_router
 from .routers import clients_router
 from .routers import activities_router
 from .routers import reports_router
@@ -63,12 +49,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
-
-# Mount static files
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-except Exception as e:
-    logger.warning(f"Could not mount static files: {e}")
 
 # ============================================================================
 # Middleware
@@ -139,10 +119,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # Register Routers
 # ============================================================================
 
-# ✅ Authentication router (complete)
 app.include_router(auth_router)
-
-# Registered routers
 app.include_router(clients_router)
 app.include_router(activities_router)
 app.include_router(reports_router)
@@ -150,8 +127,17 @@ app.include_router(users_router)
 app.include_router(analytics_router)
 
 # ============================================================================
-# Root & Health Endpoints
+# Health Check
 # ============================================================================
+
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION
+    }
 
 # ============================================================================
 # Static Files & Frontend Serving
@@ -169,25 +155,21 @@ legacy_dirs = [
 
 for dir_name in legacy_dirs:
     if os.path.exists(dir_name):
+        print(f"MOUNTING: {dir_name}")
         app.mount(f"/{dir_name}", StaticFiles(directory=dir_name, html=True), name=dir_name)
+    else:
+        print(f"SKIPPING: {dir_name} (not found)")
 
-# 2. Mount React Assets
+# 1. Mount React Assets
 if os.path.exists("frontend/dist/react-assets"):
     app.mount("/react-assets", StaticFiles(directory="frontend/dist/react-assets"), name="react-assets")
 
-# 3. Serve React App (SPA)
+# 2. Serve React App (SPA)
 @app.get("/")
 async def read_root():
-    return FileResponse("frontend/dist/index.html")
-
-@app.get("/api/health")
-def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "service": settings.APP_NAME,
-        "version": settings.APP_VERSION
-    }
+    if os.path.exists("frontend/dist/index.html"):
+        return FileResponse("frontend/dist/index.html")
+    return JSONResponse({"error": "Frontend not built"}, status_code=404)
 
 # Catch-all for React Router (must be last)
 @app.get("/{full_path:path}")
@@ -205,7 +187,7 @@ async def serve_react_app(full_path: str):
     if os.path.exists("frontend/dist/index.html"):
         return FileResponse("frontend/dist/index.html")
     
-    return JSONResponse({"error": "Frontend not found (Run build)"}, status_code=404)
+    return JSONResponse({"error": "Frontend not built. Run 'npm run build' in frontend/ directory."}, status_code=404)
 
 # ============================================================================
 # Startup / Shutdown Events

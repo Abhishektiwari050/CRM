@@ -9,28 +9,34 @@ const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [chartsData, setChartsData] = useState({ pie: null, bar: null });
     const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Fetch Stats
-                const statsRes = await fetch('/api/manager/stats', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } }); // TODO: Auth Context
-                const statsJson = await statsRes.json();
-                setStats(statsJson);
+                const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const role = (user.role || '').toLowerCase();
+                setUserRole(role);
 
-                // 2. Fetch Clients for Charts (Simulating chart logic from backend/frontend)
-                // In React, we'll fetch clients list and aggregate locally for now, 
-                // matching the logic in employee_dashboard.js
-                // Ideally backend should provide chart data, but we'll stick to parity.
+                let fetchedStats = {};
+
+                // 1. Fetch Stats (Manager Only)
+                if (role === 'manager' || role === 'admin') {
+                    const statsRes = await fetch('/api/manager/stats', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } });
+                    fetchedStats = await statsRes.json();
+                }
+
+                // 2. Fetch Clients & Calculate Charts/Employee Stats
                 const clientsRes = await fetch('/api/clients', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } });
                 const clients = (await clientsRes.json()).data || [];
 
-                // Process Charts
-                // Pie: Status
+                // Common aggregation
                 const statusCounts = { Good: 0, Due: 0, Overdue: 0 };
                 const contactBuckets = { '<7 Days': 0, '7-14 Days': 0, '15-30 Days': 0, '>30 Days': 0 };
 
+                let overdueCount = 0;
                 const now = new Date();
+
                 clients.forEach(c => {
                     // Status
                     let status = 'Overdue';
@@ -40,9 +46,10 @@ const Dashboard = () => {
                         if (diff < 7) status = 'Good';
                         else if (diff <= 14) status = 'Due Soon';
                     }
+
                     if (status === 'Good') statusCounts.Good++;
                     else if (status === 'Due Soon') statusCounts.Due++;
-                    else statusCounts.Overdue++;
+                    else { statusCounts.Overdue++; overdueCount++; }
 
                     // Activity
                     if (diff < 7) contactBuckets['<7 Days']++;
@@ -50,6 +57,18 @@ const Dashboard = () => {
                     else if (diff <= 30) contactBuckets['15-30 Days']++;
                     else contactBuckets['>30 Days']++;
                 });
+
+                // If Employee, calculate stats locally
+                if (role === 'employee') {
+                    fetchedStats = {
+                        employees: 1, // Self
+                        clients: clients.length,
+                        overdue: overdueCount,
+                        efficiency: clients.length > 0 ? Math.round(((clients.length - overdueCount) / clients.length) * 100) : 0
+                    };
+                }
+
+                setStats(fetchedStats);
 
                 setChartsData({
                     pie: {
@@ -83,48 +102,56 @@ const Dashboard = () => {
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-blue-600 font-medium">Loading Dashboard...</div>;
 
+    const isManager = userRole === 'manager' || userRole === 'admin';
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Manager Overview</h1>
-                <p className="text-slate-500 mt-1">Real-time performance metrics and team insights.</p>
+                <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
+                    {isManager ? 'Manager Overview' : 'Employee Dashboard'}
+                </h1>
+                <p className="text-slate-500 mt-1">
+                    {isManager ? 'Real-time performance metrics and team insights.' : 'Track your client portfolio and performance.'}
+                </p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Total Employees"
-                    value={stats?.employees || 0}
-                    icon={Users}
-                    color="blue"
-                    subtitle="Active team members"
-                />
+                {isManager && (
+                    <StatCard
+                        title="Total Employees"
+                        value={stats?.employees || 0}
+                        icon={Users}
+                        color="blue"
+                        subtitle="Active team members"
+                    />
+                )}
                 <StatCard
                     title="Total Clients"
                     value={stats?.clients || 0}
                     icon={UserCheck}
-                    color="green" // Using green variant
-                    subtitle="In system"
+                    color="green"
+                    subtitle={isManager ? "In system" : "Assigned to you"}
                 />
                 <StatCard
                     title="Overdue Clients"
                     value={stats?.overdue || 0}
                     icon={AlertOctagon}
-                    color="red" // Explicit red
+                    color="red"
                     subtitle="Needs attention"
                 />
                 <StatCard
-                    title="Team Efficiency"
+                    title="Efficiency Score"
                     value={`${stats?.efficiency || 0}%`}
                     icon={TrendingUp}
-                    color="orange" // Orange for metrics
+                    color="orange"
                     subtitle="Based on activity"
                 />
             </div>
 
-            {/* Alerts Section (DMR Flags) */}
-            <DashboardAlerts />
+            {/* Alerts Section (Manager Only) */}
+            {isManager && <DashboardAlerts />}
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

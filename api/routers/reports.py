@@ -78,14 +78,28 @@ def submit_report(report: DailyReport, payload = Depends(verify_token)):
                     count += 1
             if count >= 3:
                 # Create notification for manager
-                supabase.table("notifications").insert({
-                    "user_id": "manager",
-                    "type": "repeated_contact",
-                    "title": f"Repeated Contact: {name}",
-                    "message": f"Employee {payload['sub']} has contacted {name} for 3+ consecutive days",
-                    "metadata": {"employee_id": payload["sub"], "contact_name": name, "count": count},
-                    "created_at": datetime.utcnow().isoformat()
-                }).execute()
+                # Create notification for all managers
+                try:
+                    managers_res = supabase.table("users").select("id").eq("role", "manager").execute()
+                    managers = managers_res.data or []
+                    
+                    notifications = []
+                    for mgr in managers:
+                        notifications.append({
+                            "user_id": mgr["id"],
+                            "type": "repeated_contact",
+                            "title": f"Repeated Contact: {name}",
+                            "message": f"Employee {payload['sub']} has contacted {name} for 3+ consecutive days",
+                            "metadata": {"employee_id": payload["sub"], "contact_name": name, "count": count},
+                            "created_at": datetime.utcnow().isoformat()
+                        })
+                    
+                    if notifications:
+                        supabase.table("notifications").insert(notifications).execute()
+                        logger.info(f"Repeated contact notification sent to {len(notifications)} managers for {name}")
+
+                except Exception as notify_error:
+                    logger.error(f"Failed to send manager notifications: {notify_error}")
                 logger.info(f"Repeated contact notification created for {name}")
     
     return {"message": "Report submitted", "id": (result.data and result.data[0].get("id"))}
@@ -171,7 +185,8 @@ def report_flags(payload = Depends(require_manager)):
         # Note: Supabase JS/Python client syntax for JSON contains filtering might be tricky in python client depending on version
         # But we can filter in python for now if volume is low, or use exact match on type
         
-        res = supabase.table("notifications").select("*").eq("user_id", "manager").eq("type", "repeated_contact").eq("is_read", "false").order("created_at", desc=True).execute()
+        # Fetch unread repeated_contact notifications for THIS manager
+        res = supabase.table("notifications").select("*").eq("user_id", payload["sub"]).eq("type", "repeated_contact").eq("is_read", "false").order("created_at", desc=True).execute()
         
         notifications = res.data or []
         flags = []
@@ -216,7 +231,8 @@ def dismiss_flag(req: DismissFlagRequest, payload = Depends(require_manager)):
     try:
         # Verify it's a manager notification (optional security check)
         # Just update is_read = true
-        res = supabase.table("notifications").update({"is_read": True}).eq("id", req.notification_id).eq("user_id", "manager").execute()
+        # Verify it's a manager notification for this user
+        res = supabase.table("notifications").update({"is_read": True}).eq("id", req.notification_id).eq("user_id", payload["sub"]).execute()
         
         return {"message": "Flag dismissed"}
     except Exception as e:

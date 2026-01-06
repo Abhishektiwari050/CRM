@@ -1,39 +1,94 @@
 # Competence CRM
 
-System overview, key architectural decisions, implementation highlights, performance improvements, setup and deployment instructions, and known limitations.
+**A modern, unified customer relationship management platform designed for efficiency and clarity.**
 
-## System Overview
-Competence CRM supports three roles: `admin`, `manager`, `employee`. Managers create and assign clients to employees. Employees log client contacts and submit daily work reports. Dashboards show status groups: `overdue` (>14d), `due_soon` (8–14d), `good` (≤7d).
+## 🚀 Overview
 
-## Key Architectural Decisions
-- Modular FastAPI application with standardized error handling and JWT auth.
-- In-memory demo mode when Supabase is not configured.
-- Performance middleware with request IDs and response time headers.
-- Backend-derived status classification and unified calculation rules.
-- Event-based UI refresh via `localStorage` for real-time sync.
+Competence CRM streamlines client management for teams. It features a robust Python backend and a reactive modern frontend, providing real-time insights, automated status tracking, and seamless activity logging.
 
-## Implementation Highlights
-- `/api/clients` returns enriched fields: `days_since_last_contact`, `status`, `is_overdue`.
-- `/api/activity-log` updates client `last_contact_date`.
-- Manager analytics: stats, performance, alerts, workload distribution.
-- DWR autosave with server-side drafts and manager archive.
-- Round-robin auto-assignment endpoint for unassigned clients.
+**Key Features:**
+- **Smart Client Status**: Automatically categorizes clients as *Good*, *Due Soon*, or *Overdue* based on interaction history.
+- **Role-Based Access**: Granular permissions for Admins, Managers, and Employees.
+- **Data Isolation**: Employees see only their assigned clients; Managers have full team visibility.
+- **Performance Analytics**: Real-time metrics on team performance and client health.
 
-## Performance Improvements
-- Response-time instrumentation headers: `X-Request-ID`, `X-Response-Time-ms`.
-- Client list caching with short TTL.
-- Reduced blocking UI by rendering from cache and refreshing asynchronously.
+## 🛠 Tech Stack
 
-## Setup and Deployment
-1. `pip install -r api/requirements.txt`
-2. Start backend: `python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8001`
-3. Start UI proxy: `python server.py` (serves UI and proxies `/api/*`)
-4. Configure Supabase via environment variables to use production mode.
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10+)
+- **Frontend**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Authentication**: JWT (JSON Web Tokens)
 
-## Known Limitations
-- Demo mode uses in-memory data; restart resets state.
-- Round-robin assignment is demo-only; production requires DB writes.
+## 📂 Project Structure
 
-## CI and Tests
-- GitHub Actions run unit tests, coverage, and Bandit security scan.
+```
+CRM/
+├── api/                 # FastAPI Backend
+│   ├── routers/         # API Endpoints (Auth, Clients, etc.)
+│   ├── models/          # Pydantic Schemas
+│   └── main.py          # Application Entry Application
+├── frontend/            # React Frontend
+│   ├── src/             # Components, Pages, Logic
+│   └── dist/            # Built Production Assets
+├── _archive/            # Legacy Code (Reference)
+├── START.bat            # Unified Windows Startup Script
+└── README.md            # You are here
+```
 
+## ⚡ Getting Started
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+
+### Setup & Run
+The project includes a unified startup script for Windows.
+
+1. **Clone the repository**
+2. **Run the startup script**:
+   ```powershell
+   .\START.bat
+   ```
+   *This script will create the virtual environment, install dependencies, build the frontend, and launch the server.*
+
+3. **Manual Setup** (If preferred):
+   - **Backend**:
+     ```bash
+     python -m venv .venv
+     .\.venv\Scripts\activate
+     pip install -r requirements.txt
+     python -m uvicorn api.main:app --reload --port 8001
+     ```
+   - **Frontend**:
+     ```bash
+     cd frontend
+     npm install
+     npm run build
+     ```
+   - Access the app at `http://localhost:8001`.
+
+## 🔐 Credentials (Demo)
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Manager** | `manager@crm.com` | `password123` |
+| **Employee** | `employee@crm.com` | `password123` |
+
+## 🧪 Development
+
+### Running Tests
+```bash
+python -m pytest api/tests
+```
+
+### Environment Variables
+Create a `.env` file in the root directory:
+```
+SUPABASE_URL=your_url
+SUPABASE_KEY=your_key
+JWT_SECRET=your_secret
+```
+
+---
+*Built with ❤️ by the Competence Team.*

@@ -28,8 +28,6 @@ const Login = () => {
                 sessionStorage.setItem('token', data.access_token);
                 sessionStorage.setItem('currentUser', JSON.stringify(data.user));
 
-                const role = (data.user.role || '').toLowerCase();
-
                 if (role === 'employee') {
                     // Redirect to Legacy Dashboard on Port 3000 with token AND user
                     const userStr = encodeURIComponent(JSON.stringify(data.user));
